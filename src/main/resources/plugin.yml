@@ -3,7 +3,11 @@ version: '${project.version}'
 main: me.neoblade298.ashvote.AshVote
 api-version: '1.21'
 depend: [NeoCore]
+softdepend: [Votifier]
 commands:
-  av:
+  vote:
     description: AshVote base command
-    permission: ashvote.general
+    permission: ashvote.vote
+  voteadmin:
+    description: AshVote admin command
+    permission: ashvote.admin

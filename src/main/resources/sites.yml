@@ -1,0 +1,15 @@
+# Vote Sites Configuration
+# cooldown-type: FIXED_DAILY (resets at midnight) or TIMED (24h from last vote)
+# service-name: must match the service name sent by the votifier protocol
+
+sites:
+  pmc:
+    display-name: "&aPlanet Minecraft"
+    url: "https://www.planetminecraft.com/server/your-server/vote/"
+    service-name: "PlanetMinecraft"
+    cooldown-type: FIXED_DAILY
+  mcsl:
+    display-name: "&bMC Server List"
+    url: "https://minecraft-server-list.com/server/your-server/vote/"
+    service-name: "MCServerList"
+    cooldown-type: TIMED

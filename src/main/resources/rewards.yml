@@ -1,0 +1,56 @@
+# Reward Groups Configuration
+# Each top-level key is a reward group name.
+# rewards: list of console commands or group references (single word matching another group name)
+# trigger: SINGLE (default), or object with type + params
+# permission: optional permission required to receive this reward
+# max-claims: optional max times a player can receive this group (omit = unlimited)
+#
+# Placeholders in commands: %player%
+#
+# Trigger types:
+#   SINGLE - every vote
+#   REPEATING - every X votes (interval)
+#   STREAK - when streak reaches X (value)
+#   STREAK_CYCLE - when streak reaches start, then every interval after (start, interval)
+#   TOTAL - when total votes reaches X (value)
+
+vote-reward:
+  rewards:
+    - "give %player% diamond 1"
+
+weekly-bonus:
+  permission: "ashvote.weeklybonus"
+  trigger:
+    type: REPEATING
+    interval: 7
+  rewards:
+    - "give %player% diamond_block 1"
+    - rare-loot
+
+streak-5:
+  trigger:
+    type: STREAK
+    value: 5
+  max-claims: 1
+  rewards:
+    - "broadcast %player% hit a 5-vote streak!"
+
+streak-cycle-10:
+  trigger:
+    type: STREAK_CYCLE
+    start: 10
+    interval: 10
+  rewards:
+    - "give %player% netherite_ingot 1"
+
+milestone-100:
+  trigger:
+    type: TOTAL
+    value: 100
+  max-claims: 1
+  rewards:
+    - "lp user %player% parent add voter100"
+
+rare-loot:
+  rewards:
+    - "give %player% golden_apple 3"
