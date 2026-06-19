@@ -1,0 +1,25 @@
+# Build output
+target/
+
+# Dependencies (installed locally via mvn install:install-file)
+dependencies/
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# IntelliJ
+*.iml
+.idea/
+
+# VS Code (track tasks.json for shared build config)
+.vscode/*
+!.vscode/tasks.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# JARs
+*.jar
