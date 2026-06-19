@@ -1,5 +1,7 @@
-package me.neoblade298.ashtemplate.player;
+package me.neoblade298.ashvote.player;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.UUID;
@@ -29,10 +31,11 @@ public class PlayerData {
         counter++;
     }
 
-    public String save(UUID uuid) {
-        return new SQLInsertBuilder(SQLAction.REPLACE, "ashtemplate_data")
-                .addString(uuid.toString())
-                .addValue(counter)
-                .build();
+    public PreparedStatement save(UUID uuid, Connection con) throws SQLException {
+        return new SQLInsertBuilder(SQLAction.REPLACE, "ashvote_data")
+                .addValue("uuid", uuid.toString())
+                .addValue("counter", counter)
+                .addRow()
+                .build(con);
     }
 }

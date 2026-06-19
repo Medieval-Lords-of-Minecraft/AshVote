@@ -1,4 +1,4 @@
-package me.neoblade298.ashtemplate.commands;
+package me.neoblade298.ashvote.commands;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,15 +9,15 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-import me.neoblade298.ashtemplate.player.PlayerData;
-import me.neoblade298.ashtemplate.player.PlayerManager;
+import me.neoblade298.ashvote.player.PlayerData;
+import me.neoblade298.ashvote.player.PlayerManager;
 
 public class CmdExample implements CommandExecutor, TabCompleter {
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
-            sender.sendMessage("§6/at example §7- An example command");
+            sender.sendMessage("§6/av example §7- An example command");
             return true;
         }
 
@@ -36,7 +36,7 @@ public class CmdExample implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        sender.sendMessage("§cUnknown subcommand. Use /at for a list of commands.");
+        sender.sendMessage("§cUnknown subcommand. Use /av for a list of commands.");
         return true;
     }
 

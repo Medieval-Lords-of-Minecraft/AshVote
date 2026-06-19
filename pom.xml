@@ -5,14 +5,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>me.neoblade298</groupId>
-    <artifactId>ashtemplate</artifactId>
+    <artifactId>ashvote</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>AshTemplate</name>
+    <name>AshVote</name>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <deploy.dir>${project.build.directory}</deploy.dir>
     </properties>
@@ -43,7 +43,7 @@
     </dependencies>
 
     <build>
-        <finalName>AshTemplate</finalName>
+        <finalName>AshVote</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

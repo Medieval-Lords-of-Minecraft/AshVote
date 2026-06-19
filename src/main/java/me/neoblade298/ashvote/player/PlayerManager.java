@@ -1,8 +1,11 @@
-package me.neoblade298.ashtemplate.player;
+package me.neoblade298.ashvote.player;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 import org.bukkit.OfflinePlayer;
@@ -22,7 +25,7 @@ public class PlayerManager implements IOComponent {
     public void preloadPlayer(OfflinePlayer p, Statement stmt) {
         try {
             stmt.executeUpdate(
-                "CREATE TABLE IF NOT EXISTS ashtemplate_data (" +
+                "CREATE TABLE IF NOT EXISTS ashvote_data (" +
                 "uuid VARCHAR(36) NOT NULL, " +
                 "counter INT NOT NULL DEFAULT 0, " +
                 "PRIMARY KEY (uuid))"
@@ -37,7 +40,7 @@ public class PlayerManager implements IOComponent {
         UUID uuid = p.getUniqueId();
         try {
             ResultSet rs = stmt.executeQuery(
-                "SELECT * FROM ashtemplate_data WHERE uuid = '" + uuid + "'"
+                "SELECT * FROM ashvote_data WHERE uuid = '" + uuid + "'"
             );
 
             if (rs.next()) {
@@ -51,20 +54,16 @@ public class PlayerManager implements IOComponent {
     }
 
     @Override
-    public void savePlayer(Player p, Statement insert, Statement delete) {
+    public void savePlayer(Player p, Connection con, List<PreparedStatement> stmts) throws Exception {
         UUID uuid = p.getUniqueId();
         PlayerData pd = data.get(uuid);
         if (pd != null) {
-            try {
-                insert.executeUpdate(pd.save(uuid));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            stmts.add(pd.save(uuid, con));
         }
     }
 
     @Override
-    public void cleanup(Statement insert, Statement delete) {
+    public void cleanup(Connection con, List<PreparedStatement> stmts) throws Exception {
         data.clear();
     }
 }

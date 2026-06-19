@@ -1,9 +1,9 @@
-name: AshTemplate
+name: AshVote
 version: '${project.version}'
-main: me.neoblade298.ashtemplate.AshTemplate
+main: me.neoblade298.ashvote.AshVote
 api-version: '1.21'
 depend: [NeoCore]
 commands:
-  at:
-    description: AshTemplate base command
-    permission: ashtemplate.general
+  av:
+    description: AshVote base command
+    permission: ashvote.general
