@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.time.DateTimeException;
+import java.time.ZoneId;
 import java.util.List;
 
 import org.bukkit.configuration.ConfigurationSection;
@@ -54,7 +56,21 @@ public class ConfigManager {
                 cooldownType = SiteCooldownType.TIMED;
             }
 
-            siteManager.register(new VoteSite(id, displayName, url, serviceName, cooldownType));
+            ZoneId timezone;
+            String tzString = sec.getString("timezone", null);
+            if (tzString == null || tzString.isBlank()) {
+                timezone = ZoneId.systemDefault();
+            } else {
+                try {
+                    timezone = ZoneId.of(tzString);
+                } catch (DateTimeException e) {
+                    plugin.getLogger().warning("Invalid timezone '" + tzString + "' for site '" + id
+                            + "', falling back to server default (" + ZoneId.systemDefault() + ").");
+                    timezone = ZoneId.systemDefault();
+                }
+            }
+
+            siteManager.register(new VoteSite(id, displayName, url, serviceName, cooldownType, timezone));
         }
 
         plugin.getLogger().info("Loaded " + siteManager.getAll().size() + " vote sites.");

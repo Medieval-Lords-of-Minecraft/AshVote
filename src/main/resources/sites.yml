@@ -1,6 +1,9 @@
 # Vote Sites Configuration
 # cooldown-type: FIXED_DAILY (resets at midnight) or TIMED (24h from last vote)
 # service-name: must match the service name sent by the votifier protocol
+# timezone: (FIXED_DAILY only) IANA zone id used to decide when "midnight" reset
+#           happens, e.g. "America/New_York", "Europe/London", "UTC".
+#           Optional; defaults to the server's system timezone if omitted.
 
 sites:
   pmc:
@@ -8,6 +11,7 @@ sites:
     url: "https://www.planetminecraft.com/server/your-server/vote/"
     service-name: "PlanetMinecraft"
     cooldown-type: FIXED_DAILY
+    timezone: "America/New_York"
   mcsl:
     display-name: "&bMC Server List"
     url: "https://minecraft-server-list.com/server/your-server/vote/"

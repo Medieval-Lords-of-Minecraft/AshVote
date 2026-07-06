@@ -1,5 +1,7 @@
 package me.neoblade298.ashvote.sites;
 
+import java.time.ZoneId;
+
 public class VoteSite {
 
     private final String id;
@@ -7,13 +9,15 @@ public class VoteSite {
     private final String url;
     private final String serviceName;
     private final SiteCooldownType cooldownType;
+    private final ZoneId timezone;
 
-    public VoteSite(String id, String displayName, String url, String serviceName, SiteCooldownType cooldownType) {
+    public VoteSite(String id, String displayName, String url, String serviceName, SiteCooldownType cooldownType, ZoneId timezone) {
         this.id = id;
         this.displayName = displayName;
         this.url = url;
         this.serviceName = serviceName;
         this.cooldownType = cooldownType;
+        this.timezone = timezone;
     }
 
     public String getId() {
@@ -36,6 +40,10 @@ public class VoteSite {
         return cooldownType;
     }
 
+    public ZoneId getTimezone() {
+        return timezone;
+    }
+
     /**
      * Check if the given last vote time is still on cooldown.
      */
@@ -46,10 +54,10 @@ public class VoteSite {
         if (cooldownType == SiteCooldownType.TIMED) {
             return (now - lastVoteTime) < 24 * 60 * 60 * 1000L;
         } else {
-            // FIXED_DAILY: on cooldown if last vote was today (same calendar day)
+            // FIXED_DAILY: on cooldown if last vote was today (same calendar day) in the site's timezone
             java.time.LocalDate lastDate = java.time.Instant.ofEpochMilli(lastVoteTime)
-                    .atZone(java.time.ZoneId.systemDefault()).toLocalDate();
-            java.time.LocalDate today = java.time.LocalDate.now();
+                    .atZone(timezone).toLocalDate();
+            java.time.LocalDate today = java.time.LocalDate.now(timezone);
             return !lastDate.isBefore(today);
         }
     }
