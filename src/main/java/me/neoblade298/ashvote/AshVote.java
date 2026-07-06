@@ -20,6 +20,7 @@ import me.neoblade298.ashvote.rewards.RewardManager;
 import me.neoblade298.ashvote.sites.SiteManager;
 import me.neoblade298.neocore.bukkit.NeoCore;
 import me.neoblade298.neocore.bukkit.commands.SubcommandManager;
+import me.neoblade298.neocore.shared.commands.SubcommandRunner;
 import net.kyori.adventure.text.format.NamedTextColor;
 
 public class AshVote extends JavaPlugin {
@@ -83,36 +84,18 @@ public class AshVote extends JavaPlugin {
     private void initCommands() {
         // /vote command
         SubcommandManager voteCmds = new SubcommandManager("vote", "ashvote.vote", NamedTextColor.GOLD, this);
-        CmdVote cmdVote = new CmdVote();
-        cmdVote.enableTabComplete();
-        voteCmds.register(cmdVote);
-
-        CmdVoteStats cmdStats = new CmdVoteStats();
-        cmdStats.overrideTabHandler();
-        voteCmds.register(cmdStats);
-
-        CmdVoteLeaderboard cmdLb = new CmdVoteLeaderboard();
-        cmdLb.enableTabComplete();
-        voteCmds.register(cmdLb);
+        voteCmds.register(new CmdVote("", "Show vote links", null, SubcommandRunner.PLAYER_ONLY));
+        voteCmds.register(new CmdVoteStats("stats", "View vote stats", null, SubcommandRunner.PLAYER_ONLY));
+        voteCmds.register(new CmdVoteLeaderboard("leaderboard", "View vote leaderboards", null, SubcommandRunner.BOTH));
+        voteCmds.registerCommandList("help");
 
         // /voteadmin command
         SubcommandManager adminCmds = new SubcommandManager("voteadmin", "ashvote.admin", NamedTextColor.RED, this);
-
-        CmdVoteAdminSet cmdSet = new CmdVoteAdminSet();
-        cmdSet.overrideTabHandler();
-        adminCmds.register(cmdSet);
-
-        CmdVoteAdminFakevote cmdFake = new CmdVoteAdminFakevote();
-        cmdFake.overrideTabHandler();
-        adminCmds.register(cmdFake);
-
-        CmdVoteAdminReload cmdReload = new CmdVoteAdminReload();
-        cmdReload.enableTabComplete();
-        adminCmds.register(cmdReload);
-
-        CmdVoteAdminGivereward cmdGive = new CmdVoteAdminGivereward();
-        cmdGive.overrideTabHandler();
-        adminCmds.register(cmdGive);
+        adminCmds.register(new CmdVoteAdminSet("set", "Set a player's vote stat", "ashvote.admin", SubcommandRunner.BOTH));
+        adminCmds.register(new CmdVoteAdminFakevote("fakevote", "Send a fake vote for a player", "ashvote.admin", SubcommandRunner.BOTH));
+        adminCmds.register(new CmdVoteAdminReload("reload", "Reload configs", "ashvote.admin", SubcommandRunner.BOTH));
+        adminCmds.register(new CmdVoteAdminGivereward("givereward", "Give a reward group to a player", "ashvote.admin", SubcommandRunner.BOTH));
+        adminCmds.registerCommandList("help");
     }
 
     public void reloadConfigs() {

@@ -13,10 +13,11 @@ import me.neoblade298.neocore.shared.commands.SubcommandRunner;
 
 public class CmdVoteAdminFakevote extends Subcommand {
 
-    public CmdVoteAdminFakevote() {
-        super("fakevote", "Send a fake vote for a player", "ashvote.admin", SubcommandRunner.BOTH);
+    public CmdVoteAdminFakevote(String key, String desc, String perm, SubcommandRunner runner) {
+        super(key, desc, perm, runner);
         this.args.add(new Arg("player", true));
         this.args.add(new Arg("site", false));
+        this.overrideTabHandler();
     }
 
     @Override

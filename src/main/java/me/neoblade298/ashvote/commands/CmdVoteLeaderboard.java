@@ -12,8 +12,8 @@ import me.neoblade298.neocore.shared.commands.SubcommandRunner;
 
 public class CmdVoteLeaderboard extends Subcommand {
 
-    public CmdVoteLeaderboard() {
-        super("leaderboard", "View vote leaderboards", null, SubcommandRunner.BOTH);
+    public CmdVoteLeaderboard(String key, String desc, String perm, SubcommandRunner runner) {
+        super(key, desc, perm, runner);
     }
 
     @Override

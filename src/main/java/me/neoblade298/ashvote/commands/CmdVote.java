@@ -17,8 +17,8 @@ import net.kyori.adventure.text.format.NamedTextColor;
 
 public class CmdVote extends Subcommand {
 
-    public CmdVote() {
-        super("vote", "Show vote links", null, SubcommandRunner.PLAYER_ONLY);
+    public CmdVote(String key, String desc, String perm, SubcommandRunner runner) {
+        super(key, desc, perm, runner);
     }
 
     @Override

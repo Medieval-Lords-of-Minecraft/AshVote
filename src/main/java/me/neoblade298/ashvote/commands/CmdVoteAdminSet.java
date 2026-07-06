@@ -14,11 +14,12 @@ import me.neoblade298.neocore.shared.commands.SubcommandRunner;
 
 public class CmdVoteAdminSet extends Subcommand {
 
-    public CmdVoteAdminSet() {
-        super("set", "Set a player's vote stat", "ashvote.admin", SubcommandRunner.BOTH);
+    public CmdVoteAdminSet(String key, String desc, String perm, SubcommandRunner runner) {
+        super(key, desc, perm, runner);
         this.args.add(new Arg("player", true));
         this.args.add(new Arg("total|streak|monthly", true));
         this.args.add(new Arg("value", true));
+        this.overrideTabHandler();
     }
 
     @Override

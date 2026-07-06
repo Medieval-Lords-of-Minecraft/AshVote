@@ -14,10 +14,11 @@ import me.neoblade298.neocore.shared.commands.SubcommandRunner;
 
 public class CmdVoteAdminGivereward extends Subcommand {
 
-    public CmdVoteAdminGivereward() {
-        super("givereward", "Give a reward group to a player", "ashvote.admin", SubcommandRunner.BOTH);
+    public CmdVoteAdminGivereward(String key, String desc, String perm, SubcommandRunner runner) {
+        super(key, desc, perm, runner);
         this.args.add(new Arg("player", true));
         this.args.add(new Arg("group", true));
+        this.overrideTabHandler();
     }
 
     @Override

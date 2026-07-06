@@ -14,9 +14,10 @@ import me.neoblade298.neocore.shared.commands.SubcommandRunner;
 
 public class CmdVoteStats extends Subcommand {
 
-    public CmdVoteStats() {
-        super("stats", "View vote stats", null, SubcommandRunner.PLAYER_ONLY);
+    public CmdVoteStats(String key, String desc, String perm, SubcommandRunner runner) {
+        super(key, desc, perm, runner);
         this.args.add(new Arg("player", false));
+        this.overrideTabHandler();
     }
 
     @Override

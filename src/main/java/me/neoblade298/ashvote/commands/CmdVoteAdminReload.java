@@ -10,8 +10,8 @@ import me.neoblade298.neocore.shared.commands.SubcommandRunner;
 
 public class CmdVoteAdminReload extends Subcommand {
 
-    public CmdVoteAdminReload() {
-        super("reload", "Reload configs", "ashvote.admin", SubcommandRunner.BOTH);
+    public CmdVoteAdminReload(String key, String desc, String perm, SubcommandRunner runner) {
+        super(key, desc, perm, runner);
     }
 
     @Override
