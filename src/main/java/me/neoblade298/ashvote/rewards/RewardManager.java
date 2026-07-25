@@ -1,7 +1,9 @@
 package me.neoblade298.ashvote.rewards;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
@@ -12,6 +14,7 @@ import me.neoblade298.ashvote.player.VotePlayerData;
 public class RewardManager {
 
     private final Map<String, RewardGroup> groups = new HashMap<>();
+    private final Random random = new Random();
 
     public void clear() {
         groups.clear();
@@ -63,6 +66,11 @@ public class RewardManager {
             return;
         }
 
+        // Roll chance gate before consuming a claim
+        if (group.hasChance() && random.nextInt(100) >= group.getChance()) {
+            return;
+        }
+
         // Check max claims
         if (group.hasMaxClaims()) {
             int claimed = data.getClaimCount(group.getId());
@@ -76,18 +84,49 @@ public class RewardManager {
     }
 
     private void executeRewards(Player player, RewardGroup group) {
+        if (group.hasChoices()) {
+            String entry = pickWeighted(group.getChoices());
+            if (entry != null) {
+                executeEntry(player, entry);
+            }
+            return;
+        }
+
         for (String entry : group.getRewards()) {
-            if (isGroup(entry)) {
-                // Nested group reference
-                RewardGroup nested = groups.get(entry);
-                if (nested != null) {
-                    executeRewards(player, nested);
-                }
-            } else {
-                // Console command
-                String command = entry.replace("%player%", player.getName());
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+            executeEntry(player, entry);
+        }
+    }
+
+    private void executeEntry(Player player, String entry) {
+        if (isGroup(entry)) {
+            // Nested group reference
+            RewardGroup nested = groups.get(entry);
+            if (nested != null) {
+                executeRewards(player, nested);
+            }
+        } else {
+            // Console command
+            String command = entry.replace("%player%", player.getName());
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+        }
+    }
+
+    private String pickWeighted(List<WeightedChoice> choices) {
+        int total = 0;
+        for (WeightedChoice c : choices) {
+            total += c.getWeight();
+        }
+        if (total <= 0) {
+            return null;
+        }
+
+        int roll = random.nextInt(total);
+        for (WeightedChoice c : choices) {
+            roll -= c.getWeight();
+            if (roll < 0) {
+                return c.getReward();
             }
         }
+        return null;
     }
 }

@@ -6,16 +6,21 @@ public class RewardGroup {
 
     private final String id;
     private final List<String> rewards;
+    private final List<WeightedChoice> choices; // empty = run all rewards; non-empty = pick one weighted
     private final RewardTrigger trigger;
     private final String permission;
     private final int maxClaims; // -1 = unlimited
+    private final int chance; // percent [0-100] that this group fires when eligible
 
-    public RewardGroup(String id, List<String> rewards, RewardTrigger trigger, String permission, int maxClaims) {
+    public RewardGroup(String id, List<String> rewards, List<WeightedChoice> choices, RewardTrigger trigger,
+            String permission, int maxClaims, int chance) {
         this.id = id;
         this.rewards = rewards;
+        this.choices = choices;
         this.trigger = trigger;
         this.permission = permission;
         this.maxClaims = maxClaims;
+        this.chance = chance;
     }
 
     public String getId() {
@@ -40,5 +45,21 @@ public class RewardGroup {
 
     public boolean hasMaxClaims() {
         return maxClaims > 0;
+    }
+
+    public List<WeightedChoice> getChoices() {
+        return choices;
+    }
+
+    public boolean hasChoices() {
+        return choices != null && !choices.isEmpty();
+    }
+
+    public int getChance() {
+        return chance;
+    }
+
+    public boolean hasChance() {
+        return chance < 100;
     }
 }

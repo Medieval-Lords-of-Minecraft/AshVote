@@ -6,7 +6,9 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.time.DateTimeException;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -16,6 +18,7 @@ import me.neoblade298.ashvote.rewards.RewardGroup;
 import me.neoblade298.ashvote.rewards.RewardManager;
 import me.neoblade298.ashvote.rewards.RewardTrigger;
 import me.neoblade298.ashvote.rewards.RewardTriggerType;
+import me.neoblade298.ashvote.rewards.WeightedChoice;
 import me.neoblade298.ashvote.sites.SiteCooldownType;
 import me.neoblade298.ashvote.sites.SiteManager;
 import me.neoblade298.ashvote.sites.VoteSite;
@@ -87,14 +90,56 @@ public class ConfigManager {
             if (sec == null) continue;
 
             List<String> rewards = sec.getStringList("rewards");
+            List<WeightedChoice> choices = parseChoices(sec, id);
             String permission = sec.getString("permission", null);
             int maxClaims = sec.getInt("max-claims", -1);
+            int chance = clampChance(sec.getInt("chance", 100), id);
             RewardTrigger trigger = parseTrigger(sec);
 
-            rewardManager.register(new RewardGroup(id, rewards, trigger, permission, maxClaims));
+            if (!choices.isEmpty() && !rewards.isEmpty()) {
+                plugin.getLogger().warning("Reward group '" + id
+                        + "' defines both 'rewards' and 'choices'; using 'choices' and ignoring 'rewards'.");
+            }
+
+            rewardManager.register(new RewardGroup(id, rewards, choices, trigger, permission, maxClaims, chance));
         }
 
         plugin.getLogger().info("Loaded " + rewardManager.getGroupIds().size() + " reward groups.");
+    }
+
+    private List<WeightedChoice> parseChoices(ConfigurationSection sec, String groupId) {
+        if (!sec.contains("choices")) return List.of();
+
+        List<WeightedChoice> result = new ArrayList<>();
+        for (Map<?, ?> map : sec.getMapList("choices")) {
+            Object rewardObj = map.get("reward");
+            if (rewardObj == null) {
+                plugin.getLogger().warning("Reward group '" + groupId + "' has a choice missing 'reward'; skipping.");
+                continue;
+            }
+
+            int weight = 1;
+            Object weightObj = map.get("weight");
+            if (weightObj instanceof Number n) {
+                weight = n.intValue();
+            }
+            if (weight <= 0) {
+                plugin.getLogger().warning("Reward group '" + groupId + "' has a choice with weight <= 0; skipping.");
+                continue;
+            }
+
+            result.add(new WeightedChoice(weight, rewardObj.toString()));
+        }
+        return result;
+    }
+
+    private int clampChance(int chance, String groupId) {
+        if (chance < 0 || chance > 100) {
+            plugin.getLogger().warning("Reward group '" + groupId + "' has chance " + chance
+                    + " outside [0, 100]; clamping.");
+            return Math.max(0, Math.min(100, chance));
+        }
+        return chance;
     }
 
     private RewardTrigger parseTrigger(ConfigurationSection sec) {
