@@ -1,82 +1,210 @@
-# Reward Groups Configuration
-# Each top-level key is a reward group name.
-# rewards: list of console commands or group references (single word matching another group name)
-#          ALL entries are executed.
-# choices: weighted "pick one" table (alternative to rewards). Exactly ONE entry is chosen.
-#          Each entry has a 'weight' (relative, need not sum to 100) and a 'reward'
-#          (a console command or a group reference). If both 'rewards' and 'choices'
-#          are set, 'choices' wins.
-# trigger: SINGLE (default), or object with type + params
-# permission: optional permission required to receive this reward
-# max-claims: optional max times a player can receive this group (omit = unlimited)
-# chance: optional percent [0-100] that the group fires when otherwise eligible (default 100).
-#         Rolled before a max-claim is consumed, so a failed roll does not use up a claim.
+# Reward Configuration
+#
+# This file has TWO sections:
+#
+#   groups:   pure reward DEFINITIONS ("what you get"). Groups never fire on
+#             their own - they only run when a trigger (or another group)
+#             references them by id.
+#   triggers: the "WHEN + gating" entries. These are the only things evaluated
+#             on each vote. Each trigger points at a 'reward' (a group id or a
+#             raw console command) and says when/whether it fires.
+#
+# ---- groups ----
+# A group runs in ONE of three modes (precedence: choices > permissioned > rewards):
+#   rewards:      list of console commands or group references; ALL are executed.
+#   choices:      weighted "pick one" table. Exactly ONE entry is chosen.
+#                 Each entry has a 'weight' (relative) and a 'reward'.
+#   permissioned: ordered "first authorized wins" list. The FIRST entry whose
+#                 permission the player holds is chosen; a 'default' entry is the
+#                 fallback. Branches are mutually exclusive.
+#
+# ---- triggers ----
+# reward:      REQUIRED. A group id or a raw console command to run.
+# when:        SINGLE (default), or an object with type + params (see below).
+# permission:  optional permission required for this trigger to fire.
+# max-claims:  optional cap on how many times this trigger pays out (omit = unlimited).
+# chance:      optional percent [0-100] chance the trigger fires when eligible (default 100).
+#              Rolled before a max-claim is consumed, so a failed roll doesn't use a claim.
+#
+# 'when' types:
+#   SINGLE       - every vote
+#   REPEATING    - every X votes            (interval)
+#   STREAK       - when streak reaches X     (value)
+#   STREAK_CYCLE - streak reaches start, then every interval after (start, interval)
+#   TOTAL        - when total votes reaches X (value)
 #
 # Placeholders in commands: %player%
-#
-# Trigger types:
-#   SINGLE - every vote
-#   REPEATING - every X votes (interval)
-#   STREAK - when streak reaches X (value)
-#   STREAK_CYCLE - when streak reaches start, then every interval after (start, interval)
-#   TOTAL - when total votes reaches X (value)
 
-vote-reward:
-  rewards:
-    - "give %player% diamond 1"
+groups:
+  # ---- Daily vote reward (ported from FoPzlVote) ----
+  # Premium players (ashvote.premium) roll the diamond-tier pool; everyone else
+  # rolls the regular-tier pool. Branches are mutually exclusive; each then
+  # weight-picks exactly one of its four tiers (standard 8 / enhanced 7 /
+  # superior 4 / supreme 1).
+  daily:
+    permissioned:
+      - ashvote.premium: daily-premium
+      - default: daily-normal
 
-weekly-bonus:
-  permission: "ashvote.weeklybonus"
-  trigger:
-    type: REPEATING
-    interval: 7
-  rewards:
-    - "give %player% diamond_block 1"
-    - rare-loot
+  daily-premium:
+    choices:
+      - weight: 8
+        reward: diamond_standard
+      - weight: 7
+        reward: diamond_enhanced
+      - weight: 4
+        reward: diamond_superior
+      - weight: 1
+        reward: diamond_supreme
 
-streak-5:
-  trigger:
-    type: STREAK
-    value: 5
-  max-claims: 1
-  rewards:
-    - "broadcast %player% hit a 5-vote streak!"
+  daily-normal:
+    choices:
+      - weight: 8
+        reward: regular_standard
+      - weight: 7
+        reward: regular_enhanced
+      - weight: 4
+        reward: regular_superior
+      - weight: 1
+        reward: regular_supreme
 
-streak-cycle-10:
-  trigger:
-    type: STREAK_CYCLE
-    start: 10
-    interval: 10
-  rewards:
-    - "give %player% netherite_ingot 1"
+  # Diamond tiers (premium) - all commands in each tier are executed.
+  diamond_standard:
+    rewards:
+      - "ncore msg %player% &7You received the &eStandard Diamond &7reward: &e500 gold&7 and &e10 exp"
+      - "xp give %player% 10"
+      - "execute at %player% run playsound entity.arrow.hit_player master %player%"
+      - "eco give %player% 500"
 
-milestone-100:
-  trigger:
-    type: TOTAL
-    value: 100
-  max-claims: 1
-  rewards:
-    - "lp user %player% parent add voter100"
+  diamond_enhanced:
+    rewards:
+      - "ncore msg %player% &7You received the &eEnhanced Diamond &7reward: &e700 gold&7 and &e20 exp"
+      - "xp give %player% 20"
+      - "execute at %player% run playsound entity.firework_rocket.launch master %player%"
+      - "eco give %player% 700"
 
-rare-loot:
-  rewards:
-    - "give %player% golden_apple 3"
+  diamond_superior:
+    rewards:
+      - "ncore msg %player% &7You received the &eSuperior Diamond &7reward: &e1000 gold&7, &e50 exp&7, and &eHaste I (30m)"
+      - "xp give %player% 50"
+      - "execute at %player% run playsound entity.firework_rocket.launch master %player%"
+      - "effect give %player% haste 1800 1"
+      - "eco give %player% 1000"
 
-# Weighted pick: exactly one of these fires each time the group runs.
-# Weights are relative (40/30/20/10 behaves the same as 4/3/2/1).
-random-loot:
-  choices:
-    - weight: 40
-      reward: "give %player% diamond 1"
-    - weight: 30
-      reward: "give %player% emerald 1"
-    - weight: 20
-      reward: rare-loot                     # group reference works too
-    - weight: 10
-      reward: "give %player% netherite_ingot 1"
+  diamond_supreme:
+    rewards:
+      - "ncore msg %player% &7You received the &eSupreme Diamond &7reward: &e1200 gold&7, &e100 exp&7, &eSpeed I (30m)&7, and &eHaste II (30m)"
+      - "xp give %player% 100"
+      - "execute at %player% run playsound entity.firework_rocket.launch master %player%"
+      - "effect give %player% haste 1800 1"
+      - "effect give %player% speed 1800 0"
+      - "eco give %player% 1200"
 
-# Chance gate: 25% of votes this whole group fires; otherwise nothing happens.
-lucky-drop:
-  chance: 25
-  rewards:
-    - "give %player% diamond 1"
+  # Regular tiers (default) - all commands in each tier are executed.
+  regular_standard:
+    rewards:
+      - "ncore msg %player% &7You received the &eStandard &7reward: &e250 gold&7 and &e10 exp"
+      - "xp give %player% 10"
+      - "execute at %player% run playsound entity.arrow.hit_player master %player%"
+      - "eco give %player% 250"
+
+  regular_enhanced:
+    rewards:
+      - "ncore msg %player% &7You received the &eEnhanced &7reward: &e450 gold&7 and &e20 exp"
+      - "xp give %player% 20"
+      - "execute at %player% run playsound entity.firework_rocket.launch master %player%"
+      - "eco give %player% 450"
+
+  regular_superior:
+    rewards:
+      - "ncore msg %player% &7You received the &eSuperior &7reward: &e750 gold&7, &e50 exp&7, and &eHaste I (30m)"
+      - "xp give %player% 50"
+      - "execute at %player% run playsound entity.firework_rocket.launch master %player%"
+      - "effect give %player% haste 1800 1"
+      - "eco give %player% 750"
+
+  regular_supreme:
+    rewards:
+      - "ncore msg %player% &7You received the &eSupreme &7reward: &e1100 gold&7, &e100 exp&7, &eSpeed I (30m)&7, and &eHaste II (30m)"
+      - "xp give %player% 100"
+      - "execute at %player% run playsound entity.firework_rocket.launch master %player%"
+      - "effect give %player% haste 1800 1"
+      - "effect give %player% speed 1800 0"
+      - "eco give %player% 1100"
+
+  # Reusable helper, referenced by the weekly-bonus trigger and the random-loot group.
+  rare-loot:
+    rewards:
+      - "give %player% golden_apple 3"
+
+  # Bundle granted by the weekly-bonus trigger.
+  weekly-bonus:
+    rewards:
+      - "give %player% diamond_block 1"
+      - rare-loot
+
+  # Weighted pick: exactly one of these fires when this group runs.
+  random-loot:
+    choices:
+      - weight: 40
+        reward: "give %player% diamond 1"
+      - weight: 30
+        reward: "give %player% emerald 1"
+      - weight: 20
+        reward: rare-loot                     # group reference works too
+      - weight: 10
+        reward: "give %player% netherite_ingot 1"
+
+triggers:
+  # The daily reward, on every vote. Routes to the permissioned 'daily' group.
+  daily:
+    when: SINGLE
+    reward: daily
+
+  # Simple one-off: a trigger can point straight at a console command (no group needed).
+  vote-reward:
+    when: SINGLE
+    reward: "give %player% diamond 1"
+
+  # Every 7th vote, and only for players with the permission.
+  weekly-bonus:
+    when:
+      type: REPEATING
+      interval: 7
+    permission: "ashvote.weeklybonus"
+    reward: weekly-bonus
+
+  # The first time the player reaches a 5-vote streak.
+  streak-5:
+    when:
+      type: STREAK
+      value: 5
+    max-claims: 1
+    reward: "broadcast %player% hit a 5-vote streak!"
+
+  # Every 10 streak, starting at 10.
+  streak-cycle-10:
+    when:
+      type: STREAK_CYCLE
+      start: 10
+      interval: 10
+    reward: "give %player% netherite_ingot 1"
+
+  # One-time milestone at 100 total votes.
+  milestone-100:
+    when:
+      type: TOTAL
+      value: 100
+    max-claims: 1
+    reward: "lp user %player% parent add voter100"
+
+  # Fires the random-loot pool on every vote.
+  random-loot:
+    when: SINGLE
+    reward: random-loot
+
+  # 25% chance each vote to also drop a diamond.
+  lucky-drop:
+    when: SINGLE
+    chance: 25
+    reward: "give %player% diamond 1"

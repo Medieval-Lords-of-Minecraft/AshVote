@@ -14,14 +14,20 @@ import me.neoblade298.ashvote.player.VotePlayerData;
 public class RewardManager {
 
     private final Map<String, RewardGroup> groups = new HashMap<>();
+    private final Map<String, RewardTriggerEntry> triggers = new HashMap<>();
     private final Random random = new Random();
 
     public void clear() {
         groups.clear();
+        triggers.clear();
     }
 
     public void register(RewardGroup group) {
         groups.put(group.getId(), group);
+    }
+
+    public void registerTrigger(RewardTriggerEntry trigger) {
+        triggers.put(trigger.getId(), trigger);
     }
 
     public RewardGroup getGroup(String id) {
@@ -32,60 +38,76 @@ public class RewardManager {
         return groups.keySet();
     }
 
+    public RewardTriggerEntry getTrigger(String id) {
+        return triggers.get(id);
+    }
+
+    public Set<String> getTriggerIds() {
+        return triggers.keySet();
+    }
+
     public boolean isGroup(String entry) {
         return !entry.contains(" ") && groups.containsKey(entry);
     }
 
     /**
-     * Process all rewards for a player after a vote.
+     * Process all triggers for a player after a vote.
      * @param player the voting player
      * @param data the player's vote data
      */
     public void processRewards(Player player, VotePlayerData data) {
-        for (RewardGroup group : groups.values()) {
-            processGroup(player, data, group);
+        for (RewardTriggerEntry trigger : triggers.values()) {
+            processTrigger(player, data, trigger);
         }
     }
 
     /**
-     * Manually trigger a specific reward group for a player (admin command).
-     * Ignores trigger conditions and max-claims.
+     * Manually run a specific reward group for a player (admin command).
+     * Ignores triggers and gating.
      */
     public void giveReward(Player player, RewardGroup group) {
         executeRewards(player, group);
     }
 
-    private void processGroup(Player player, VotePlayerData data, RewardGroup group) {
+    private void processTrigger(Player player, VotePlayerData data, RewardTriggerEntry trigger) {
         // Check permission
-        if (group.getPermission() != null && !player.hasPermission(group.getPermission())) {
+        if (trigger.getPermission() != null && !player.hasPermission(trigger.getPermission())) {
             return;
         }
 
-        // Check trigger
-        if (!group.getTrigger().shouldFire(data.getTotalVotes(), data.getStreak())) {
+        // Check firing condition
+        if (!trigger.getWhen().shouldFire(data.getTotalVotes(), data.getStreak())) {
             return;
         }
 
         // Roll chance gate before consuming a claim
-        if (group.hasChance() && random.nextInt(100) >= group.getChance()) {
+        if (trigger.hasChance() && random.nextInt(100) >= trigger.getChance()) {
             return;
         }
 
-        // Check max claims
-        if (group.hasMaxClaims()) {
-            int claimed = data.getClaimCount(group.getId());
-            if (claimed >= group.getMaxClaims()) {
+        // Check max claims (keyed by trigger id)
+        if (trigger.hasMaxClaims()) {
+            int claimed = data.getClaimCount(trigger.getId());
+            if (claimed >= trigger.getMaxClaims()) {
                 return;
             }
-            data.incrementClaimCount(group.getId());
+            data.incrementClaimCount(trigger.getId());
         }
 
-        executeRewards(player, group);
+        executeEntry(player, trigger.getReward());
     }
 
     private void executeRewards(Player player, RewardGroup group) {
         if (group.hasChoices()) {
             String entry = pickWeighted(group.getChoices());
+            if (entry != null) {
+                executeEntry(player, entry);
+            }
+            return;
+        }
+
+        if (group.hasPermissioned()) {
+            String entry = pickPermissioned(player, group.getPermissioned());
             if (entry != null) {
                 executeEntry(player, entry);
             }
@@ -125,6 +147,19 @@ public class RewardManager {
             roll -= c.getWeight();
             if (roll < 0) {
                 return c.getReward();
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Resolve a permissioned entry list: the first entry whose permission the player
+     * holds (or a 'default' entry) is chosen. Returns null if nothing matches.
+     */
+    private String pickPermissioned(Player player, List<PermissionedChoice> entries) {
+        for (PermissionedChoice pc : entries) {
+            if (pc.isDefault() || player.hasPermission(pc.getPermission())) {
+                return pc.getReward();
             }
         }
         return null;

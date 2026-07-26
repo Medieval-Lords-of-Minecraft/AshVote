@@ -2,25 +2,25 @@ package me.neoblade298.ashvote.rewards;
 
 import java.util.List;
 
+/**
+ * A pure reward definition: a bundle of commands ('rewards'), a weighted
+ * pick-one table ('choices'), or a permission-routed pick-one list
+ * ('permissioned'). Groups never fire on their own; they only run when a
+ * trigger (or another group) references them.
+ */
 public class RewardGroup {
 
     private final String id;
     private final List<String> rewards;
     private final List<WeightedChoice> choices; // empty = run all rewards; non-empty = pick one weighted
-    private final RewardTrigger trigger;
-    private final String permission;
-    private final int maxClaims; // -1 = unlimited
-    private final int chance; // percent [0-100] that this group fires when eligible
+    private final List<PermissionedChoice> permissioned; // empty = not permissioned; non-empty = first authorized entry wins
 
-    public RewardGroup(String id, List<String> rewards, List<WeightedChoice> choices, RewardTrigger trigger,
-            String permission, int maxClaims, int chance) {
+    public RewardGroup(String id, List<String> rewards, List<WeightedChoice> choices,
+            List<PermissionedChoice> permissioned) {
         this.id = id;
         this.rewards = rewards;
         this.choices = choices;
-        this.trigger = trigger;
-        this.permission = permission;
-        this.maxClaims = maxClaims;
-        this.chance = chance;
+        this.permissioned = permissioned;
     }
 
     public String getId() {
@@ -31,22 +31,6 @@ public class RewardGroup {
         return rewards;
     }
 
-    public RewardTrigger getTrigger() {
-        return trigger;
-    }
-
-    public String getPermission() {
-        return permission;
-    }
-
-    public int getMaxClaims() {
-        return maxClaims;
-    }
-
-    public boolean hasMaxClaims() {
-        return maxClaims > 0;
-    }
-
     public List<WeightedChoice> getChoices() {
         return choices;
     }
@@ -55,11 +39,11 @@ public class RewardGroup {
         return choices != null && !choices.isEmpty();
     }
 
-    public int getChance() {
-        return chance;
+    public List<PermissionedChoice> getPermissioned() {
+        return permissioned;
     }
 
-    public boolean hasChance() {
-        return chance < 100;
+    public boolean hasPermissioned() {
+        return permissioned != null && !permissioned.isEmpty();
     }
 }

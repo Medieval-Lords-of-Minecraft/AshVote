@@ -14,9 +14,11 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import me.neoblade298.ashvote.AshVote;
+import me.neoblade298.ashvote.rewards.PermissionedChoice;
 import me.neoblade298.ashvote.rewards.RewardGroup;
 import me.neoblade298.ashvote.rewards.RewardManager;
 import me.neoblade298.ashvote.rewards.RewardTrigger;
+import me.neoblade298.ashvote.rewards.RewardTriggerEntry;
 import me.neoblade298.ashvote.rewards.RewardTriggerType;
 import me.neoblade298.ashvote.rewards.WeightedChoice;
 import me.neoblade298.ashvote.sites.SiteCooldownType;
@@ -85,26 +87,62 @@ public class ConfigManager {
         ensureResource("rewards.yml", file);
         YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
 
-        for (String id : cfg.getKeys(false)) {
-            ConfigurationSection sec = cfg.getConfigurationSection(id);
-            if (sec == null) continue;
-
-            List<String> rewards = sec.getStringList("rewards");
-            List<WeightedChoice> choices = parseChoices(sec, id);
-            String permission = sec.getString("permission", null);
-            int maxClaims = sec.getInt("max-claims", -1);
-            int chance = clampChance(sec.getInt("chance", 100), id);
-            RewardTrigger trigger = parseTrigger(sec);
-
-            if (!choices.isEmpty() && !rewards.isEmpty()) {
-                plugin.getLogger().warning("Reward group '" + id
-                        + "' defines both 'rewards' and 'choices'; using 'choices' and ignoring 'rewards'.");
+        // Reward groups: pure "what you get" definitions. They never fire on their own.
+        ConfigurationSection groupsSec = cfg.getConfigurationSection("groups");
+        if (groupsSec != null) {
+            for (String id : groupsSec.getKeys(false)) {
+                ConfigurationSection sec = groupsSec.getConfigurationSection(id);
+                if (sec == null) continue;
+                rewardManager.register(parseGroup(sec, id));
             }
-
-            rewardManager.register(new RewardGroup(id, rewards, choices, trigger, permission, maxClaims, chance));
         }
 
-        plugin.getLogger().info("Loaded " + rewardManager.getGroupIds().size() + " reward groups.");
+        // Triggers: the "when + gating" entries evaluated on each vote.
+        ConfigurationSection triggersSec = cfg.getConfigurationSection("triggers");
+        if (triggersSec != null) {
+            for (String id : triggersSec.getKeys(false)) {
+                ConfigurationSection sec = triggersSec.getConfigurationSection(id);
+                if (sec == null) continue;
+                RewardTriggerEntry trigger = parseTriggerEntry(sec, id);
+                if (trigger != null) rewardManager.registerTrigger(trigger);
+            }
+        }
+
+        plugin.getLogger().info("Loaded " + rewardManager.getGroupIds().size() + " reward groups and "
+                + rewardManager.getTriggerIds().size() + " triggers.");
+    }
+
+    private RewardGroup parseGroup(ConfigurationSection sec, String id) {
+        List<String> rewards = sec.getStringList("rewards");
+        List<WeightedChoice> choices = parseChoices(sec, id);
+        List<PermissionedChoice> permissioned = parsePermissioned(sec, id);
+
+        int modes = 0;
+        if (!choices.isEmpty()) modes++;
+        if (!permissioned.isEmpty()) modes++;
+        if (!rewards.isEmpty()) modes++;
+        if (modes > 1) {
+            plugin.getLogger().warning("Reward group '" + id
+                    + "' defines more than one of 'choices', 'permissioned', 'rewards'; "
+                    + "precedence is choices > permissioned > rewards.");
+        }
+
+        return new RewardGroup(id, rewards, choices, permissioned);
+    }
+
+    private RewardTriggerEntry parseTriggerEntry(ConfigurationSection sec, String id) {
+        String reward = sec.getString("reward", null);
+        if (reward == null || reward.isBlank()) {
+            plugin.getLogger().warning("Trigger '" + id + "' is missing a 'reward'; skipping.");
+            return null;
+        }
+
+        RewardTrigger when = parseCondition(sec);
+        String permission = sec.getString("permission", null);
+        int maxClaims = sec.getInt("max-claims", -1);
+        int chance = clampChance(sec.getInt("chance", 100), id);
+
+        return new RewardTriggerEntry(id, reward, when, permission, maxClaims, chance);
     }
 
     private List<WeightedChoice> parseChoices(ConfigurationSection sec, String groupId) {
@@ -133,6 +171,32 @@ public class ConfigManager {
         return result;
     }
 
+    private List<PermissionedChoice> parsePermissioned(ConfigurationSection sec, String groupId) {
+        if (!sec.contains("permissioned")) return List.of();
+
+        List<PermissionedChoice> result = new ArrayList<>();
+        for (Map<?, ?> map : sec.getMapList("permissioned")) {
+            if (map.isEmpty()) {
+                plugin.getLogger().warning("Reward group '" + groupId + "' has an empty permissioned entry; skipping.");
+                continue;
+            }
+
+            // Each entry is a single-key map: 'permission: reward' (or 'default: reward').
+            Map.Entry<?, ?> entry = map.entrySet().iterator().next();
+            String permission = String.valueOf(entry.getKey());
+            Object rewardObj = entry.getValue();
+            if (rewardObj == null) {
+                plugin.getLogger().warning("Reward group '" + groupId + "' has a permissioned entry '" + permission
+                        + "' missing a reward; skipping.");
+                continue;
+            }
+
+            boolean isDefault = permission.equalsIgnoreCase("default");
+            result.add(new PermissionedChoice(isDefault ? null : permission, rewardObj.toString()));
+        }
+        return result;
+    }
+
     private int clampChance(int chance, String groupId) {
         if (chance < 0 || chance > 100) {
             plugin.getLogger().warning("Reward group '" + groupId + "' has chance " + chance
@@ -142,36 +206,36 @@ public class ConfigManager {
         return chance;
     }
 
-    private RewardTrigger parseTrigger(ConfigurationSection sec) {
-        if (!sec.contains("trigger")) {
-            return RewardTrigger.single();
+    private RewardTrigger parseCondition(ConfigurationSection sec) {
+        if (!sec.contains("when")) {
+            return RewardTrigger.single(); // default: fire on every vote
         }
 
-        // Simple string trigger (e.g. trigger: SINGLE)
-        if (sec.isString("trigger")) {
-            String type = sec.getString("trigger", "SINGLE").toUpperCase();
+        // Simple string condition (e.g. when: SINGLE)
+        if (sec.isString("when")) {
+            String type = sec.getString("when", "SINGLE").toUpperCase();
             if (type.equals("SINGLE")) return RewardTrigger.single();
             // Other types require params, default to single
             return RewardTrigger.single();
         }
 
-        // Object trigger
-        ConfigurationSection triggerSec = sec.getConfigurationSection("trigger");
-        if (triggerSec == null) return RewardTrigger.single();
+        // Object condition (e.g. when: { type: REPEATING, interval: 7 })
+        ConfigurationSection whenSec = sec.getConfigurationSection("when");
+        if (whenSec == null) return RewardTrigger.single();
 
         RewardTriggerType type;
         try {
-            type = RewardTriggerType.valueOf(triggerSec.getString("type", "SINGLE").toUpperCase());
+            type = RewardTriggerType.valueOf(whenSec.getString("type", "SINGLE").toUpperCase());
         } catch (IllegalArgumentException e) {
             return RewardTrigger.single();
         }
 
         return switch (type) {
             case SINGLE -> RewardTrigger.single();
-            case REPEATING -> RewardTrigger.repeating(triggerSec.getInt("interval", 1));
-            case STREAK -> RewardTrigger.streak(triggerSec.getInt("value", 1));
-            case STREAK_CYCLE -> RewardTrigger.streakCycle(triggerSec.getInt("start", 1), triggerSec.getInt("interval", 1));
-            case TOTAL -> RewardTrigger.total(triggerSec.getInt("value", 1));
+            case REPEATING -> RewardTrigger.repeating(whenSec.getInt("interval", 1));
+            case STREAK -> RewardTrigger.streak(whenSec.getInt("value", 1));
+            case STREAK_CYCLE -> RewardTrigger.streakCycle(whenSec.getInt("start", 1), whenSec.getInt("interval", 1));
+            case TOTAL -> RewardTrigger.total(whenSec.getInt("value", 1));
         };
     }
 
