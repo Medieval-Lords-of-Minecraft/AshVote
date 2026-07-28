@@ -236,6 +236,7 @@ public class ConfigManager {
             case STREAK -> RewardTrigger.streak(whenSec.getInt("value", 1));
             case STREAK_CYCLE -> RewardTrigger.streakCycle(whenSec.getInt("start", 1), whenSec.getInt("interval", 1));
             case TOTAL -> RewardTrigger.total(whenSec.getInt("value", 1));
+            case ALL_SITES -> RewardTrigger.allSites();
         };
     }
 
