@@ -9,6 +9,7 @@ import java.util.Set;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
+import me.neoblade298.ashvote.AshVote;
 import me.neoblade298.ashvote.player.VotePlayerData;
 
 public class RewardManager {
@@ -16,6 +17,11 @@ public class RewardManager {
     private final Map<String, RewardGroup> groups = new HashMap<>();
     private final Map<String, RewardTriggerEntry> triggers = new HashMap<>();
     private final Random random = new Random();
+    private final AshVote plugin;
+
+    public RewardManager(AshVote plugin) {
+        this.plugin = plugin;
+    }
 
     public void clear() {
         groups.clear();
@@ -76,7 +82,15 @@ public class RewardManager {
         }
 
         // Check firing condition
-        if (!trigger.getWhen().shouldFire(data.getTotalVotes(), data.getStreak())) {
+        boolean shouldFire;
+        if (trigger.getWhen().getType() == RewardTriggerType.ALL_SITES) {
+            // ALL_SITES requires extended context
+            shouldFire = trigger.getWhen().shouldFireAllSites(data, plugin, player);
+        } else {
+            shouldFire = trigger.getWhen().shouldFire(data.getTotalVotes(), data.getStreak());
+        }
+
+        if (!shouldFire) {
             return;
         }
 
@@ -95,6 +109,11 @@ public class RewardManager {
         }
 
         executeEntry(player, trigger.getReward());
+
+        // Mark all-sites reward as claimed for today
+        if (trigger.getWhen().getType() == RewardTriggerType.ALL_SITES) {
+            data.setLastAllSitesClaimDay(java.time.LocalDate.now());
+        }
     }
 
     private void executeRewards(Player player, RewardGroup group) {

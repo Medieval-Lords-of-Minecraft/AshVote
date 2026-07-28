@@ -5,5 +5,6 @@ public enum RewardTriggerType {
     REPEATING,
     STREAK,
     STREAK_CYCLE,
-    TOTAL
+    TOTAL,
+    ALL_SITES
 }

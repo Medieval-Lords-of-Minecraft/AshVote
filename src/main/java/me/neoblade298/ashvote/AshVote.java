@@ -43,7 +43,7 @@ public class AshVote extends JavaPlugin {
         inst = this;
 
         siteManager = new SiteManager();
-        rewardManager = new RewardManager();
+        rewardManager = new RewardManager(this);
         configManager = new ConfigManager(this);
         playerManager = new PlayerManager();
         leaderboardManager = new LeaderboardManager(this);

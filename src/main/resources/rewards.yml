@@ -32,6 +32,7 @@
 #   STREAK       - when streak reaches X     (value)
 #   STREAK_CYCLE - streak reaches start, then every interval after (start, interval)
 #   TOTAL        - when total votes reaches X (value)
+#   ALL_SITES    - votes on all configured sites in a single calendar day (once per day max)
 #
 # Placeholders in commands: %player%
 
@@ -197,6 +198,13 @@ triggers:
       value: 100
     max-claims: 1
     reward: "lp user %player% parent add voter100"
+
+  # Daily all-sites reward: granted once per calendar day when player votes on all configured sites.
+  # Player must vote on EVERY site at least once during that calendar day to receive this reward.
+  clean-sweep:
+    when:
+      type: ALL_SITES
+    reward: "broadcast &a&l%player% voted on all sites today! Clean sweep!"
 
   # Fires the random-loot pool on every vote.
   random-loot:

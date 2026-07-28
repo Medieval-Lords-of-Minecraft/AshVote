@@ -3,7 +3,9 @@ package me.neoblade298.ashvote.player;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -19,6 +21,7 @@ public class VotePlayerData {
     private int voteMonth; // YYYYMM format
     private int streak;
     private long lastVoteTime;
+    private LocalDate lastAllSitesClaimDay; // Track last calendar day this player claimed all-sites reward
     private final Map<String, Long> siteCooldowns = new HashMap<>();
     private final Map<String, Integer> rewardClaims = new HashMap<>();
 
@@ -31,12 +34,22 @@ public class VotePlayerData {
         this.lastVoteTime = 0;
     }
 
-    public VotePlayerData(UUID uuid, int totalVotes, int monthlyVotes, int voteMonth, int streak, long lastVoteTime) {
+    public VotePlayerData(UUID uuid, int totalVotes, int monthlyVotes, int voteMonth, int streak, long lastVoteTime, int lastAllSitesClaimDayInt) {
         this.uuid = uuid;
         this.totalVotes = totalVotes;
         this.voteMonth = voteMonth;
         this.streak = streak;
         this.lastVoteTime = lastVoteTime;
+        
+        // Convert YYYYMMDD int to LocalDate
+        if (lastAllSitesClaimDayInt > 0) {
+            int year = lastAllSitesClaimDayInt / 10000;
+            int month = (lastAllSitesClaimDayInt % 10000) / 100;
+            int day = lastAllSitesClaimDayInt % 100;
+            this.lastAllSitesClaimDay = LocalDate.of(year, month, day);
+        } else {
+            this.lastAllSitesClaimDay = null;
+        }
 
         // Reset monthly if month has changed
         if (voteMonth != currentMonth()) {
@@ -129,6 +142,46 @@ public class VotePlayerData {
         return rewardClaims;
     }
 
+    // All-sites reward claim tracking
+    public LocalDate getLastAllSitesClaimDay() {
+        return lastAllSitesClaimDay;
+    }
+
+    public void setLastAllSitesClaimDay(LocalDate day) {
+        this.lastAllSitesClaimDay = day;
+    }
+
+    /**
+     * Convert LocalDate to YYYYMMDD int format for database storage.
+     */
+    private int dateToInt(LocalDate date) {
+        if (date == null) return 0;
+        return date.getYear() * 10000 + date.getMonthValue() * 100 + date.getDayOfMonth();
+    }
+
+    /**
+     * Check if player has voted on all configured sites since today's start.
+     */
+    public boolean hasVotedAllSitesToday(me.neoblade298.ashvote.AshVote plugin) {
+        // Get timestamp for start of today
+        LocalDate today = LocalDate.now();
+        long todayStart = today.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli();
+
+        // Check each configured site
+        var allSites = plugin.getSiteManager().getAll();
+        if (allSites.isEmpty()) {
+            return false; // No sites configured
+        }
+
+        for (var site : allSites) {
+            long lastVote = getSiteCooldown(site.getId());
+            if (lastVote < todayStart) {
+                return false; // Haven't voted on this site today
+            }
+        }
+        return true; // Voted on all sites today
+    }
+
     // SQL save methods
     public PreparedStatement savePlayer(Connection con) throws SQLException {
         return new SQLInsertBuilder(SQLAction.REPLACE, "ashvote_players")
@@ -138,6 +191,7 @@ public class VotePlayerData {
                 .addValue("vote_month", voteMonth)
                 .addValue("streak", streak)
                 .addValue("last_vote_time", lastVoteTime)
+                .addValue("last_all_sites_claim_day", dateToInt(lastAllSitesClaimDay))
                 .addRow()
                 .build(con);
     }

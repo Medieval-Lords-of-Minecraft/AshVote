@@ -70,7 +70,8 @@ public class PlayerManager implements IOComponent {
                     rs.getInt("monthly_votes"),
                     rs.getInt("vote_month"),
                     rs.getInt("streak"),
-                    rs.getLong("last_vote_time")
+                    rs.getLong("last_vote_time"),
+                    rs.getInt("last_all_sites_claim_day")
                 );
             } else {
                 pd = new VotePlayerData(uuid);
