@@ -11,3 +11,10 @@ commands:
   voteadmin:
     description: AshVote admin command
     permission: ashvote.admin
+permissions:
+  ashvote.vote:
+    description: Access to vote links, personal stats, and leaderboards
+    default: true
+  ashvote.admin:
+    description: Access to all AshVote administrative commands
+    default: op
