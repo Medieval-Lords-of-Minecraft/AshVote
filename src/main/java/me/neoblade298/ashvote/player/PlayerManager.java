@@ -34,6 +34,7 @@ public class PlayerManager implements IOComponent {
             "vote_month INT NOT NULL DEFAULT 0, " +
             "streak INT NOT NULL DEFAULT 0, " +
             "last_vote_time BIGINT NOT NULL DEFAULT 0, " +
+            "last_all_sites_claim_day INT NOT NULL DEFAULT 0, " +
             "PRIMARY KEY (uuid))"
         );
         stmt.executeUpdate(
