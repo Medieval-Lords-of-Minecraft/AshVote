@@ -1,8 +1,9 @@
 # Vote Sites Configuration
 # cooldown-type: FIXED_DAILY (resets at midnight) or TIMED (24h from last vote)
 # service-name: must match the service name sent by the votifier protocol
-# timezone: (FIXED_DAILY only) IANA zone id used to decide when "midnight" reset
-#           happens, e.g. "America/New_York", "Europe/London", "UTC".
+# timezone: IANA zone id used by ALL_SITES to determine the site's calendar day,
+#           and by FIXED_DAILY to decide when "midnight" reset happens.
+#           Examples: "America/New_York", "Europe/London", "UTC".
 #           Optional; defaults to the server's system timezone if omitted.
 
 sites:

@@ -46,173 +46,183 @@ groups:
     permissioned:
       - ashvote.premium: daily-premium
       - default: daily-normal
+  
+  allsites:
+    rewards:
+      - "ncore msg %player% <gray>You voted on all sites today! You now have 24 hours of access to <yellow>Caravan Save Slot 2</yellow> and one <yellow>50% Caravan Exp Boost</yellow>!"
+      - "lp user %player% permission settemp neorogue.slots.2 true 24h"
+      - "nra boost VOTE 1 %player%"
 
   daily-premium:
     choices:
       - weight: 8
-        reward: diamond_standard
+        reward: donator-standard
       - weight: 7
-        reward: diamond_enhanced
+        reward: donator-enhanced
       - weight: 4
-        reward: diamond_superior
+        reward: donator-superior
       - weight: 1
-        reward: diamond_supreme
+        reward: donator-supreme
 
   daily-normal:
     choices:
       - weight: 8
-        reward: regular_standard
+        reward: regular-standard
       - weight: 7
-        reward: regular_enhanced
+        reward: regular-enhanced
       - weight: 4
-        reward: regular_superior
+        reward: regular-superior
       - weight: 1
-        reward: regular_supreme
+        reward: regular-supreme
 
-  # Diamond tiers (premium) - all commands in each tier are executed.
-  diamond_standard:
+  # Donator tiers - all commands in each tier are executed.
+  donator-standard:
     rewards:
-      - "ncore msg %player% &7You received the &eStandard Diamond &7reward: &e500 gold&7 and &e10 exp"
+      - "ncore msg %player% <gray>You received the <yellow>Standard Donator </yellow>reward: <yellow>500 gold</yellow> and <yellow>10 exp"
       - "xp give %player% 10"
       - "execute at %player% run playsound entity.arrow.hit_player master %player%"
       - "eco give %player% 500"
+      - "ashcoins give %player% 20"
 
-  diamond_enhanced:
+  donator-enhanced:
     rewards:
-      - "ncore msg %player% &7You received the &eEnhanced Diamond &7reward: &e700 gold&7 and &e20 exp"
+      - "ncore msg %player% <gray>You received the <yellow>Enhanced Donator </yellow>reward: <yellow>700 gold</yellow> and <yellow>20 exp"
       - "xp give %player% 20"
       - "execute at %player% run playsound entity.firework_rocket.launch master %player%"
       - "eco give %player% 700"
+      - "ashcoins give %player% 20"
 
-  diamond_superior:
+  donator-superior:
     rewards:
-      - "ncore msg %player% &7You received the &eSuperior Diamond &7reward: &e1000 gold&7, &e50 exp&7, and &eHaste I (30m)"
+      - "ncore msg %player% <gray>You received the <yellow>Superior Donator </yellow>reward: <yellow>1000 gold</yellow>, <yellow>50 exp</yellow>, and <yellow>Haste I (30m)"
       - "xp give %player% 50"
       - "execute at %player% run playsound entity.firework_rocket.launch master %player%"
       - "effect give %player% haste 1800 1"
       - "eco give %player% 1000"
+      - "ashcoins give %player% 20"
 
-  diamond_supreme:
+  donator-supreme:
     rewards:
-      - "ncore msg %player% &7You received the &eSupreme Diamond &7reward: &e1200 gold&7, &e100 exp&7, &eSpeed I (30m)&7, and &eHaste II (30m)"
+      - "ncore msg %player% <gray>You received the <yellow>Supreme Donator </yellow>reward: <yellow>1200 gold</yellow>, <yellow>100 exp</yellow>, <yellow>Speed I (30m)</yellow>, and <yellow>Haste II (30m)"
       - "xp give %player% 100"
       - "execute at %player% run playsound entity.firework_rocket.launch master %player%"
       - "effect give %player% haste 1800 1"
       - "effect give %player% speed 1800 0"
       - "eco give %player% 1200"
+      - "ashcoins give %player% 30"
 
   # Regular tiers (default) - all commands in each tier are executed.
-  regular_standard:
+  regular-standard:
     rewards:
-      - "ncore msg %player% &7You received the &eStandard &7reward: &e250 gold&7 and &e10 exp"
+      - "ncore msg %player% <gray>You received the <yellow>Standard </yellow>reward: <yellow>250 gold</yellow> and <yellow>10 exp"
       - "xp give %player% 10"
       - "execute at %player% run playsound entity.arrow.hit_player master %player%"
-      - "eco give %player% 250"
+      - "eco give %player% 200"
+      - "ashcoins give %player% 10"
 
-  regular_enhanced:
+  regular-enhanced:
     rewards:
-      - "ncore msg %player% &7You received the &eEnhanced &7reward: &e450 gold&7 and &e20 exp"
+      - "ncore msg %player% <gray>You received the <yellow>Enhanced </yellow>reward: <yellow>450 gold</yellow> and <yellow>20 exp"
       - "xp give %player% 20"
       - "execute at %player% run playsound entity.firework_rocket.launch master %player%"
-      - "eco give %player% 450"
+      - "eco give %player% 400"
+      - "ashcoins give %player% 10"
 
-  regular_superior:
+  regular-superior:
     rewards:
-      - "ncore msg %player% &7You received the &eSuperior &7reward: &e750 gold&7, &e50 exp&7, and &eHaste I (30m)"
+      - "ncore msg %player% <gray>You received the <yellow>Superior </yellow>reward: <yellow>750 gold</yellow>, <yellow>50 exp</yellow>, and <yellow>Haste I (30m)"
       - "xp give %player% 50"
       - "execute at %player% run playsound entity.firework_rocket.launch master %player%"
       - "effect give %player% haste 1800 1"
-      - "eco give %player% 750"
+      - "eco give %player% 600"
+      - "ashcoins give %player% 10"
 
-  regular_supreme:
+  regular-supreme:
     rewards:
-      - "ncore msg %player% &7You received the &eSupreme &7reward: &e1100 gold&7, &e100 exp&7, &eSpeed I (30m)&7, and &eHaste II (30m)"
+      - "ncore msg %player% <gray>You received the <yellow>Supreme </yellow>reward: <yellow>1100 gold</yellow>, <yellow>100 exp</yellow>, <yellow>Speed I (30m)</yellow>, and <yellow>Haste II (30m)"
       - "xp give %player% 100"
       - "execute at %player% run playsound entity.firework_rocket.launch master %player%"
       - "effect give %player% haste 1800 1"
       - "effect give %player% speed 1800 0"
-      - "eco give %player% 1100"
+      - "eco give %player% 1000"
+      - "ashcoins give %player% 15"
 
   # Reusable helper, referenced by the weekly-bonus trigger and the random-loot group.
-  rare-loot:
-    rewards:
-      - "give %player% golden_apple 3"
+  #rare-loot:
+  #  rewards:
+  #    - "give %player% golden_apple 3"
 
   # Bundle granted by the weekly-bonus trigger.
-  weekly-bonus:
-    rewards:
-      - "give %player% diamond_block 1"
-      - rare-loot
+  #weekly-bonus:
+  #  rewards:
+  #    - "give %player% donator-block 1"
+  #    - rare-loot
 
   # Weighted pick: exactly one of these fires when this group runs.
-  random-loot:
-    choices:
-      - weight: 40
-        reward: "give %player% diamond 1"
-      - weight: 30
-        reward: "give %player% emerald 1"
-      - weight: 20
-        reward: rare-loot                     # group reference works too
-      - weight: 10
-        reward: "give %player% netherite_ingot 1"
+  #random-loot:
+  #  choices:
+  #    - weight: 40
+  #      reward: "give %player% diamond 1"
+  #    - weight: 30
+  #      reward: "give %player% emerald 1"
+  #    - weight: 20
+  #      reward: rare-loot                     # group reference works too
+  #    - weight: 10
+  #      reward: "give %player% netherite_ingot 1"
 
 triggers:
   # The daily reward, on every vote. Routes to the permissioned 'daily' group.
   daily:
     when: SINGLE
     reward: daily
+  allsites:
+    when: ALL_SITES
+    reward: allsites
 
   # Simple one-off: a trigger can point straight at a console command (no group needed).
-  vote-reward:
-    when: SINGLE
-    reward: "give %player% diamond 1"
+  #vote-reward:
+  #  when: SINGLE
+  #  reward: "give %player% diamond 1"
 
   # Every 7th vote, and only for players with the permission.
-  weekly-bonus:
-    when:
-      type: REPEATING
-      interval: 7
-    permission: "ashvote.weeklybonus"
-    reward: weekly-bonus
+  #weekly-bonus:
+  #  when:
+  #    type: REPEATING
+  #    interval: 7
+  #  permission: "ashvote.weeklybonus"
+  #  reward: weekly-bonus
 
   # The first time the player reaches a 5-vote streak.
-  streak-5:
-    when:
-      type: STREAK
-      value: 5
-    max-claims: 1
-    reward: "broadcast %player% hit a 5-vote streak!"
+  #streak-5:
+  #  when:
+  #    type: STREAK
+  #    value: 5
+  #  max-claims: 1
+  #  reward: "broadcast %player% hit a 5-vote streak!"
 
   # Every 10 streak, starting at 10.
-  streak-cycle-10:
-    when:
-      type: STREAK_CYCLE
-      start: 10
-      interval: 10
-    reward: "give %player% netherite_ingot 1"
+  #streak-cycle-10:
+  #  when:
+  #    type: STREAK_CYCLE
+  #    start: 10
+  #    interval: 10
+  #  reward: "give %player% netherite_ingot 1"
 
   # One-time milestone at 100 total votes.
-  milestone-100:
-    when:
-      type: TOTAL
-      value: 100
-    max-claims: 1
-    reward: "lp user %player% parent add voter100"
-
-  # Daily all-sites reward: granted once per calendar day when player votes on all configured sites.
-  # Player must vote on EVERY site at least once during that calendar day to receive this reward.
-  clean-sweep:
-    when:
-      type: ALL_SITES
-    reward: "broadcast &a&l%player% voted on all sites today! Clean sweep!"
+  #milestone-100:
+  #  when:
+  #    type: TOTAL
+  #    value: 100
+  #  max-claims: 1
+  #  reward: "lp user %player% parent add voter100"
 
   # Fires the random-loot pool on every vote.
-  random-loot:
-    when: SINGLE
-    reward: random-loot
+  #random-loot:
+  #  when: SINGLE
+  #  reward: random-loot
 
   # 25% chance each vote to also drop a diamond.
-  lucky-drop:
-    when: SINGLE
-    chance: 25
-    reward: "give %player% diamond 1"
+  #lucky-drop:
+  #  when: SINGLE
+  #  chance: 25
+  #  reward: "give %player% diamond 1"

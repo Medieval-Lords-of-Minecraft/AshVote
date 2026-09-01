@@ -5,7 +5,6 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.YearMonth;
-import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -160,13 +159,9 @@ public class VotePlayerData {
     }
 
     /**
-     * Check if player has voted on all configured sites since today's start.
+     * Check if the player has voted on every configured site during that site's current calendar day.
      */
     public boolean hasVotedAllSitesToday(me.neoblade298.ashvote.AshVote plugin) {
-        // Get timestamp for start of today
-        LocalDate today = LocalDate.now();
-        long todayStart = today.atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli();
-
         // Check each configured site
         var allSites = plugin.getSiteManager().getAll();
         if (allSites.isEmpty()) {
@@ -175,7 +170,7 @@ public class VotePlayerData {
 
         for (var site : allSites) {
             long lastVote = getSiteCooldown(site.getId());
-            if (lastVote < todayStart) {
+            if (!site.hasVotedToday(lastVote)) {
                 return false; // Haven't voted on this site today
             }
         }
