@@ -41,15 +41,15 @@ public class CmdVoteAdminGivereward extends Subcommand {
 
     @Override
     public List<String> getTabOptions(CommandSender s, String[] args) {
-        if (args.length == 1) {
+        if (args.length == 2) {
             return Bukkit.getOnlinePlayers().stream()
                     .map(p -> p.getName())
-                    .filter(name -> name.toLowerCase().startsWith(args[0].toLowerCase()))
+                    .filter(name -> name.toLowerCase().startsWith(args[1].toLowerCase()))
                     .toList();
         }
-        if (args.length == 2) {
+        if (args.length == 3) {
             return AshVote.inst().getRewardManager().getGroupIds().stream()
-                    .filter(id -> id.toLowerCase().startsWith(args[1].toLowerCase()))
+                    .filter(id -> id.toLowerCase().startsWith(args[2].toLowerCase()))
                     .toList();
         }
         return List.of();

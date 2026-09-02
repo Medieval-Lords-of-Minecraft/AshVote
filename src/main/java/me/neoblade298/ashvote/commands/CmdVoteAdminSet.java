@@ -63,15 +63,15 @@ public class CmdVoteAdminSet extends Subcommand {
 
     @Override
     public List<String> getTabOptions(CommandSender s, String[] args) {
-        if (args.length == 1) {
+        if (args.length == 2) {
             return Bukkit.getOnlinePlayers().stream()
                     .map(p -> p.getName())
-                    .filter(name -> name.toLowerCase().startsWith(args[0].toLowerCase()))
+                    .filter(name -> name.toLowerCase().startsWith(args[1].toLowerCase()))
                     .toList();
         }
-        if (args.length == 2) {
+        if (args.length == 3) {
             return List.of("total", "streak", "monthly").stream()
-                    .filter(opt -> opt.startsWith(args[1].toLowerCase()))
+                    .filter(opt -> opt.startsWith(args[2].toLowerCase()))
                     .toList();
         }
         return List.of();

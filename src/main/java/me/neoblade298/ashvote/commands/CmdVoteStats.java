@@ -55,10 +55,10 @@ public class CmdVoteStats extends Subcommand {
 
     @Override
     public List<String> getTabOptions(CommandSender s, String[] args) {
-        if (args.length == 1) {
+        if (args.length == 2) {
             return Bukkit.getOnlinePlayers().stream()
                     .map(p -> p.getName())
-                    .filter(name -> name.toLowerCase().startsWith(args[0].toLowerCase()))
+                    .filter(name -> name.toLowerCase().startsWith(args[1].toLowerCase()))
                     .toList();
         }
         return List.of();
