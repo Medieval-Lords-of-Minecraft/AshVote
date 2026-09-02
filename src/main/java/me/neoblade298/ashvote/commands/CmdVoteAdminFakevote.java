@@ -16,7 +16,7 @@ public class CmdVoteAdminFakevote extends Subcommand {
     public CmdVoteAdminFakevote(String key, String desc, String perm, SubcommandRunner runner) {
         super(key, desc, perm, runner);
         this.args.add(new Arg("player", true));
-        this.args.add(new Arg("site", false));
+        this.args.add(new Arg("site", true));
         this.overrideTabHandler();
     }
 
@@ -55,13 +55,13 @@ public class CmdVoteAdminFakevote extends Subcommand {
         if (args.length == 1) {
             return Bukkit.getOnlinePlayers().stream()
                     .map(p -> p.getName())
-                    .filter(name -> name.toLowerCase().startsWith(args[0].toLowerCase()))
+                    .filter(name -> name.toLowerCase().startsWith(args[1].toLowerCase()))
                     .toList();
         }
         if (args.length == 2) {
             return AshVote.inst().getSiteManager().getAll().stream()
                     .map(site -> site.getId())
-                    .filter(id -> id.toLowerCase().startsWith(args[1].toLowerCase()))
+                    .filter(id -> id.toLowerCase().startsWith(args[2].toLowerCase()))
                     .toList();
         }
         return List.of();
