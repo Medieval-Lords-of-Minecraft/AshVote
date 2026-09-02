@@ -92,6 +92,20 @@ public class VotePlayerData {
     }
 
     /**
+     * Reset all vote progress while retaining zeroed persistence entries.
+     */
+    public void resetVotes() {
+        totalVotes = 0;
+        monthlyVotes = 0;
+        voteMonth = currentMonth();
+        streak = 0;
+        lastVoteTime = 0;
+        lastAllSitesClaimDay = null;
+        siteCooldowns.replaceAll((siteId, lastVote) -> 0L);
+        rewardClaims.replaceAll((triggerId, claims) -> 0);
+    }
+
+    /**
      * Process a vote: update streak, increment counters, record time.
      */
     public void recordVote() {

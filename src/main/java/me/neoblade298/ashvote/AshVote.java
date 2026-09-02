@@ -9,6 +9,7 @@ import me.neoblade298.ashvote.commands.CmdVote;
 import me.neoblade298.ashvote.commands.CmdVoteAdminFakevote;
 import me.neoblade298.ashvote.commands.CmdVoteAdminGivereward;
 import me.neoblade298.ashvote.commands.CmdVoteAdminReload;
+import me.neoblade298.ashvote.commands.CmdVoteAdminReset;
 import me.neoblade298.ashvote.commands.CmdVoteAdminSet;
 import me.neoblade298.ashvote.commands.CmdVoteLeaderboard;
 import me.neoblade298.ashvote.commands.CmdVoteStats;
@@ -92,6 +93,7 @@ public class AshVote extends JavaPlugin {
         // /voteadmin command
         SubcommandManager adminCmds = new SubcommandManager("voteadmin", "ashvote.admin", NamedTextColor.RED, this);
         adminCmds.register(new CmdVoteAdminSet("set", "Set a player's vote stat", "ashvote.admin", SubcommandRunner.BOTH));
+        adminCmds.register(new CmdVoteAdminReset("reset", "Reset all vote data for a player", "ashvote.admin", SubcommandRunner.BOTH));
         adminCmds.register(new CmdVoteAdminFakevote("fakevote", "Send a fake vote for a player", "ashvote.admin", SubcommandRunner.BOTH));
         adminCmds.register(new CmdVoteAdminReload("reload", "Reload configs", "ashvote.admin", SubcommandRunner.BOTH));
         adminCmds.register(new CmdVoteAdminGivereward("givereward", "Give a reward group to a player", "ashvote.admin", SubcommandRunner.BOTH));
