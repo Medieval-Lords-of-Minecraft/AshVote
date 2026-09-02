@@ -85,7 +85,7 @@ public class RewardManager {
         boolean shouldFire;
         if (trigger.getWhen().getType() == RewardTriggerType.ALL_SITES) {
             // ALL_SITES requires extended context
-            shouldFire = trigger.getWhen().shouldFireAllSites(data, plugin, player);
+            shouldFire = trigger.getWhen().shouldFireAllSites(data, plugin);
         } else {
             shouldFire = trigger.getWhen().shouldFire(data.getTotalVotes(), data.getStreak());
         }

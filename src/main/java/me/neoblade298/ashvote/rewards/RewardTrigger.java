@@ -62,14 +62,13 @@ public class RewardTrigger {
      * Check if ALL_SITES trigger should fire. This requires additional context.
      * @param data player's vote data
      * @param plugin plugin instance (for site manager access)
-     * @param player player to check (for permission checks)
      * @return true if player voted all configured sites today and hasn't already claimed today
      */
-    public boolean shouldFireAllSites(VotePlayerData data, me.neoblade298.ashvote.AshVote plugin, org.bukkit.entity.Player player) {
-        // Can only claim once per calendar day (unless player has admin permission for testing)
+    public boolean shouldFireAllSites(VotePlayerData data, me.neoblade298.ashvote.AshVote plugin) {
+        // Can only claim once per calendar day
         java.time.LocalDate today = java.time.LocalDate.now();
         java.time.LocalDate lastClaim = data.getLastAllSitesClaimDay();
-        if (lastClaim != null && lastClaim.equals(today) && !player.hasPermission("ashvote.admin")) {
+        if (lastClaim != null && lastClaim.equals(today)) {
             return false;
         }
 
