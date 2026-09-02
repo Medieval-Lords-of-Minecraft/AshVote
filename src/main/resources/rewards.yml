@@ -50,8 +50,10 @@ groups:
   allsites:
     rewards:
       - "ncore msg %player% <gray>You voted on all sites today! You now have 24 hours of access to <yellow>Caravan Save Slot 2</yellow> and one <yellow>50% Caravan Exp Boost</yellow>!"
+      - "ncore msg %player% <gray>You received <yellow>Caravan Save Slot 2</yellow> (24h), a <yellow>50% Caravan Exp Boost</yellow> (1 run), and a <yellow>10% Caravan Sell Boost</yellow> (1 run) for voting on all sites today!"
       - "lp user %player% permission settemp neorogue.slots.2 true 24h"
-      - "nra boost VOTE 1 %player%"
+      - "nra expboost VOTE 1 %player%"
+      - "nra currencyboost VOTE 1 %player%"
 
   daily-premium:
     choices:

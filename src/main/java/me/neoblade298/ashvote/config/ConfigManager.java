@@ -215,6 +215,7 @@ public class ConfigManager {
         if (sec.isString("when")) {
             String type = sec.getString("when", "SINGLE").toUpperCase();
             if (type.equals("SINGLE")) return RewardTrigger.single();
+            if (type.equals("ALL_SITES")) return RewardTrigger.allSites();
             // Other types require params, default to single
             return RewardTrigger.single();
         }

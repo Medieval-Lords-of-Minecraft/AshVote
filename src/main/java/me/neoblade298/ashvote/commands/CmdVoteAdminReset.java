@@ -44,7 +44,7 @@ public class CmdVoteAdminReset extends Subcommand {
     public List<String> getTabOptions(CommandSender s, String[] args) {
         if (args.length == 2) {
             return Bukkit.getOnlinePlayers().stream()
-                    .map(Player::getName)
+                    .map(p -> p.getName())
                     .filter(name -> name.toLowerCase().startsWith(args[1].toLowerCase()))
                     .toList();
         }
