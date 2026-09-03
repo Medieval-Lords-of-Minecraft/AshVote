@@ -46,7 +46,7 @@ public class CmdVoteAdminFakevote extends Subcommand {
             serviceName = sites.iterator().next().getServiceName();
         }
 
-        AshVote.inst().getVoteListener().processVote(target, serviceName);
+        AshVote.inst().getVoteListener().recordVote(target.getName(), serviceName);
         s.sendMessage("§aFake vote sent for " + target.getName() + " (service: " + serviceName + ").");
     }
 
