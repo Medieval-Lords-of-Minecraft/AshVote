@@ -38,19 +38,25 @@ public class VoteListener implements Listener {
     }
 
     public void recordVote(String username, String serviceName) {
+        recordVote(username, serviceName, false);
+    }
+
+    public void recordVote(String username, String serviceName, boolean bypassCooldown) {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             String voteId = UUID.randomUUID().toString();
             try (Connection con = NeoCore.getConnection("AshVote");
                  PreparedStatement stmt = con.prepareStatement(
-                         "INSERT INTO ashvote_votes (id, username, service_name, received_at, state) VALUES (?, ?, ?, ?, 'PENDING')")) {
+                         "INSERT INTO ashvote_votes (id, username, service_name, received_at, state, bypass_cooldown) " +
+                         "VALUES (?, ?, ?, ?, 'PENDING', ?)")) {
                 stmt.setString(1, voteId);
                 stmt.setString(2, username);
                 stmt.setString(3, serviceName);
                 stmt.setLong(4, System.currentTimeMillis());
+                stmt.setBoolean(5, bypassCooldown);
                 stmt.executeUpdate();
                 plugin.getLogger().info("Recorded vote " + voteId + " for " + username + " from " + serviceName + ".");
 
-                PlayerManager.tryProcessVote(voteId, username, serviceName);
+                PlayerManager.tryProcessVote(voteId, username, serviceName, bypassCooldown);
             } catch (Exception e) {
                 plugin.getLogger().severe("Failed to record vote for " + username + " from " + serviceName + "!");
                 e.printStackTrace();
@@ -58,7 +64,7 @@ public class VoteListener implements Listener {
         });
     }
 
-    public VoteResult processVote(Player player, String serviceName) {
+    public VoteResult processVote(Player player, String serviceName, boolean bypassCooldown) {
         SiteManager siteManager = plugin.getSiteManager();
         VoteSite site = siteManager.getByService(serviceName);
 
@@ -75,7 +81,7 @@ public class VoteListener implements Listener {
 
         // Check site cooldown
         long lastSiteVote = data.getSiteCooldown(site.getId());
-        if (site.isOnCooldown(lastSiteVote)) {
+        if (!bypassCooldown && site.isOnCooldown(lastSiteVote)) {
             plugin.getLogger().info("Vote from " + player.getName() + " on " + site.getId() + " is on cooldown, ignoring.");
             return VoteResult.rejected("Site cooldown is active");
         }

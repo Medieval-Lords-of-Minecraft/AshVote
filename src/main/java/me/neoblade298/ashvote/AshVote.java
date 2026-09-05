@@ -86,7 +86,7 @@ public class AshVote extends JavaPlugin {
         // /vote command
         SubcommandManager voteCmds = new SubcommandManager("vote", "ashvote.vote", NamedTextColor.GOLD, this);
         voteCmds.register(new CmdVote("", "Show vote links", null, SubcommandRunner.PLAYER_ONLY));
-        voteCmds.register(new CmdVoteStats("stats", "View vote stats", null, SubcommandRunner.PLAYER_ONLY));
+        voteCmds.register(new CmdVoteStats("stats", "View vote stats", null, SubcommandRunner.BOTH));
         voteCmds.register(new CmdVoteLeaderboard("leaderboard", "View vote leaderboards", null, SubcommandRunner.BOTH));
         voteCmds.registerCommandList("help");
 

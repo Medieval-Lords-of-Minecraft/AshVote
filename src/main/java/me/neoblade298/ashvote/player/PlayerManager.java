@@ -64,11 +64,16 @@ public class PlayerManager implements IOComponent {
             "service_name VARCHAR(128) NOT NULL, " +
             "received_at BIGINT NOT NULL, " +
             "state VARCHAR(16) NOT NULL DEFAULT 'PENDING', " +
+            "bypass_cooldown BOOLEAN NOT NULL DEFAULT FALSE, " +
             "processing_started_at BIGINT NOT NULL DEFAULT 0, " +
             "processed_at BIGINT NOT NULL DEFAULT 0, " +
             "result_detail VARCHAR(255), " +
             "PRIMARY KEY (id))"
         );
+
+        if (!columnExists(stmt.getConnection(), "ashvote_votes", "bypass_cooldown")) {
+            stmt.executeUpdate("ALTER TABLE ashvote_votes ADD COLUMN bypass_cooldown BOOLEAN NOT NULL DEFAULT FALSE");
+        }
 
         if (tableExists(stmt.getConnection(), "ashvote_pending_votes")) {
             stmt.executeUpdate(
@@ -88,6 +93,12 @@ public class PlayerManager implements IOComponent {
             }
         }
         return false;
+    }
+
+    private static boolean columnExists(Connection con, String tableName, String columnName) throws Exception {
+        try (ResultSet columns = con.getMetaData().getColumns(con.getCatalog(), null, tableName, columnName)) {
+            return columns.next();
+        }
     }
 
     @Override
@@ -135,7 +146,7 @@ public class PlayerManager implements IOComponent {
 
             List<RecordedVote> pendingVotes = new ArrayList<>();
             try (PreparedStatement pendingStmt = stmt.getConnection().prepareStatement(
-                    "SELECT id, username, service_name FROM ashvote_votes " +
+                    "SELECT id, username, service_name, bypass_cooldown FROM ashvote_votes " +
                     "WHERE LOWER(username) = ? AND (state = 'PENDING' OR " +
                     "(state = 'PROCESSING' AND processing_started_at < ?)) ORDER BY received_at")) {
                 pendingStmt.setString(1, p.getName().toLowerCase(Locale.ROOT));
@@ -145,20 +156,21 @@ public class PlayerManager implements IOComponent {
                         pendingVotes.add(new RecordedVote(
                                 pendingResults.getString("id"),
                                 pendingResults.getString("username"),
-                                pendingResults.getString("service_name")));
+                            pendingResults.getString("service_name"),
+                            pendingResults.getBoolean("bypass_cooldown")));
                     }
                 }
             }
 
             for (RecordedVote pendingVote : pendingVotes) {
-                tryProcessVote(pendingVote.id(), pendingVote.username(), pendingVote.serviceName());
+                tryProcessVote(pendingVote.id(), pendingVote.username(), pendingVote.serviceName(), pendingVote.bypassCooldown());
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public static void tryProcessVote(String voteId, String username, String serviceName) {
+    public static void tryProcessVote(String voteId, String username, String serviceName, boolean bypassCooldown) {
         long now = System.currentTimeMillis();
         try (Connection con = NeoCore.getConnection("AshVote");
              PreparedStatement stmt = con.prepareStatement(
@@ -180,7 +192,7 @@ public class PlayerManager implements IOComponent {
             if (player == null || !player.isOnline() || data.get(player.getUniqueId()) == null) {
                 result = VoteResult.retry("Player is offline or data is not loaded");
             } else {
-                result = AshVote.inst().getVoteListener().processVote(player, serviceName);
+                result = AshVote.inst().getVoteListener().processVote(player, serviceName, bypassCooldown);
             }
 
             updateVoteResult(voteId, result);
@@ -204,7 +216,7 @@ public class PlayerManager implements IOComponent {
         });
     }
 
-    private record RecordedVote(String id, String username, String serviceName) {
+    private record RecordedVote(String id, String username, String serviceName, boolean bypassCooldown) {
     }
 
     @Override

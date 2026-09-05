@@ -29,8 +29,11 @@ public class CmdVoteStats extends Subcommand {
                 s.sendMessage("§cPlayer not found or not online.");
                 return;
             }
+        } else if (s instanceof Player player) {
+            target = player;
         } else {
-            target = (Player) s;
+            s.sendMessage("§cYou must specify an online player when using this command from console.");
+            return;
         }
 
         VotePlayerData data = PlayerManager.get(target);
