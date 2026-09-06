@@ -1,18 +1,23 @@
 package me.neoblade298.ashvote.commands;
 
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import me.neoblade298.ashvote.AshVote;
 import me.neoblade298.ashvote.player.PlayerManager;
 import me.neoblade298.ashvote.player.VotePlayerData;
+import me.neoblade298.ashvote.sites.VoteSite;
 import me.neoblade298.neocore.bukkit.commands.Subcommand;
 import me.neoblade298.neocore.shared.commands.Arg;
 import me.neoblade298.neocore.shared.commands.SubcommandRunner;
 
 public class CmdVoteStats extends Subcommand {
+    private static final DateTimeFormatter VOTE_TIME_FORMAT = DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a z");
 
     public CmdVoteStats(String key, String desc, String perm, SubcommandRunner runner) {
         super(key, desc, perm, runner);
@@ -54,6 +59,19 @@ public class CmdVoteStats extends Subcommand {
         } else {
             s.sendMessage("§7Last Vote: §fNever");
         }
+
+        s.sendMessage("§6Last Vote by Site:");
+        AshVote.inst().getSiteManager().getAll().stream()
+                .sorted((first, second) -> first.getDisplayName().compareToIgnoreCase(second.getDisplayName()))
+                .forEach(site -> sendSiteVoteTime(s, data, site));
+    }
+
+    private void sendSiteVoteTime(CommandSender sender, VotePlayerData data, VoteSite site) {
+        long lastVote = data.getSiteCooldown(site.getId());
+        String voteTime = lastVote > 0
+                ? VOTE_TIME_FORMAT.format(Instant.ofEpochMilli(lastVote).atZone(site.getTimezone()))
+                : "Never";
+        sender.sendMessage("§7- " + site.getDisplayName().replace("&", "§") + "§7: §f" + voteTime);
     }
 
     @Override
