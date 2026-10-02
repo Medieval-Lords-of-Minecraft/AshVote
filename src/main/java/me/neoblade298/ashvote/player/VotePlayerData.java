@@ -164,6 +164,10 @@ public class VotePlayerData {
         this.lastAllSitesClaimDay = day;
     }
 
+    public boolean hasClaimedAllSitesToday() {
+        return LocalDate.now().equals(lastAllSitesClaimDay);
+    }
+
     /**
      * Convert LocalDate to YYYYMMDD int format for database storage.
      */

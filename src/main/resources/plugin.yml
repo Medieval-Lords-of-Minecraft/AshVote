@@ -3,7 +3,7 @@ version: '${project.version}'
 main: me.neoblade298.ashvote.AshVote
 api-version: '1.21'
 depend: [NeoCore]
-softdepend: [Votifier]
+softdepend: [Votifier, PlaceholderAPI]
 commands:
   vote:
     description: AshVote base command

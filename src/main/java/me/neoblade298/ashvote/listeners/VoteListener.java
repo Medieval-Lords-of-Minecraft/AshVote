@@ -91,7 +91,7 @@ public class VoteListener implements Listener {
         data.recordVote();
 
         // Process rewards
-        plugin.getRewardManager().processRewards(player, data);
+        plugin.getRewardManager().processRewards(player, data, site);
 
         // Refresh leaderboard
         plugin.getLeaderboardManager().refreshAll();

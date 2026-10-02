@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 
 import me.neoblade298.ashvote.AshVote;
 import me.neoblade298.ashvote.player.VotePlayerData;
+import me.neoblade298.ashvote.sites.VoteSite;
 
 public class RewardManager {
 
@@ -61,9 +62,9 @@ public class RewardManager {
      * @param player the voting player
      * @param data the player's vote data
      */
-    public void processRewards(Player player, VotePlayerData data) {
+    public void processRewards(Player player, VotePlayerData data, VoteSite site) {
         for (RewardTriggerEntry trigger : triggers.values()) {
-            processTrigger(player, data, trigger);
+            processTrigger(player, data, site, trigger);
         }
     }
 
@@ -72,10 +73,10 @@ public class RewardManager {
      * Ignores triggers and gating.
      */
     public void giveReward(Player player, RewardGroup group) {
-        executeRewards(player, group);
+        executeRewards(player, group, null);
     }
 
-    private void processTrigger(Player player, VotePlayerData data, RewardTriggerEntry trigger) {
+    private void processTrigger(Player player, VotePlayerData data, VoteSite site, RewardTriggerEntry trigger) {
         // Check permission
         if (trigger.getPermission() != null && !player.hasPermission(trigger.getPermission())) {
             return;
@@ -108,7 +109,7 @@ public class RewardManager {
             data.incrementClaimCount(trigger.getId());
         }
 
-        executeEntry(player, trigger.getReward());
+        executeEntry(player, site, trigger.getReward());
 
         // Mark all-sites reward as claimed for today
         if (trigger.getWhen().getType() == RewardTriggerType.ALL_SITES) {
@@ -116,11 +117,11 @@ public class RewardManager {
         }
     }
 
-    private void executeRewards(Player player, RewardGroup group) {
+    private void executeRewards(Player player, RewardGroup group, VoteSite site) {
         if (group.hasChoices()) {
             String entry = pickWeighted(group.getChoices());
             if (entry != null) {
-                executeEntry(player, entry);
+                executeEntry(player, site, entry);
             }
             return;
         }
@@ -128,26 +129,29 @@ public class RewardManager {
         if (group.hasPermissioned()) {
             String entry = pickPermissioned(player, group.getPermissioned());
             if (entry != null) {
-                executeEntry(player, entry);
+                executeEntry(player, site, entry);
             }
             return;
         }
 
         for (String entry : group.getRewards()) {
-            executeEntry(player, entry);
+            executeEntry(player, site, entry);
         }
     }
 
-    private void executeEntry(Player player, String entry) {
+    private void executeEntry(Player player, VoteSite site, String entry) {
         if (isGroup(entry)) {
             // Nested group reference
             RewardGroup nested = groups.get(entry);
             if (nested != null) {
-                executeRewards(player, nested);
+                executeRewards(player, nested, site);
             }
         } else {
             // Console command
             String command = entry.replace("%player%", player.getName());
+            if (site != null) {
+                command = command.replace("%site%", site.getId());
+            }
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
         }
     }

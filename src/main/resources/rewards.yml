@@ -34,7 +34,9 @@
 #   TOTAL        - when total votes reaches X (value)
 #   ALL_SITES    - votes on all configured sites in a single calendar day (once per day max)
 #
-# Placeholders in commands: %player%
+# Placeholders in commands:
+#   %player% - the voting player's name
+#   %site%   - the configured id of the site the vote came from
 
 groups:
   # ---- Daily vote reward (ported from FoPzlVote) ----
