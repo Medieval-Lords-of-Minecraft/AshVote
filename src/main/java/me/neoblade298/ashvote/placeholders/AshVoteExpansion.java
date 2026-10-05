@@ -48,6 +48,8 @@ public class AshVoteExpansion extends PlaceholderExpansion {
             return null;
         }
 
-        return data.hasClaimedAllSitesToday() ? "Thanks for voting!" : "Vote available!";
+        boolean allSitesAvailable = plugin.getSiteManager().getAll().stream()
+                .allMatch(site -> !site.isOnCooldown(data.getSiteCooldown(site.getId())));
+        return allSitesAvailable ? "Vote available!" : "Thanks for voting!";
     }
 }
