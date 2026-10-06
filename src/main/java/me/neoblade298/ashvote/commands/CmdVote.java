@@ -36,7 +36,9 @@ public class CmdVote extends Subcommand {
             if (onCooldown) {
                 msg = Component.text("  ✗ ", NamedTextColor.RED)
                         .append(Component.text(site.getDisplayName().replace("&", "§"), NamedTextColor.GRAY))
-                        .append(Component.text(" (on cooldown)", NamedTextColor.RED));
+                        .append(Component.text(" (on cooldown)", NamedTextColor.RED))
+                        .append(Component.text(" [Click to Vote]", NamedTextColor.YELLOW)
+                                .clickEvent(ClickEvent.openUrl(site.getUrl())));
             } else {
                 msg = Component.text("  ✓ ", NamedTextColor.GREEN)
                         .append(Component.text(site.getDisplayName().replace("&", "§"), NamedTextColor.GREEN))
