@@ -23,6 +23,7 @@ public class VotePlayerData {
     private LocalDate lastAllSitesClaimDay; // Track last calendar day this player claimed all-sites reward
     private final Map<String, Long> siteCooldowns = new HashMap<>();
     private final Map<String, Integer> rewardClaims = new HashMap<>();
+    private final Map<String, Integer> pendingRewards = new HashMap<>();
 
     public VotePlayerData(UUID uuid) {
         this.uuid = uuid;
@@ -103,6 +104,7 @@ public class VotePlayerData {
         lastAllSitesClaimDay = null;
         siteCooldowns.replaceAll((siteId, lastVote) -> 0L);
         rewardClaims.replaceAll((triggerId, claims) -> 0);
+        pendingRewards.clear();
     }
 
     /**
@@ -153,6 +155,28 @@ public class VotePlayerData {
 
     public Map<String, Integer> getRewardClaims() {
         return rewardClaims;
+    }
+
+    public int getPendingRewardCount(String groupId) {
+        return pendingRewards.getOrDefault(groupId, 0);
+    }
+
+    @SuppressWarnings("null")
+    public void addPendingReward(String groupId) {
+        pendingRewards.merge(groupId, 1, Integer::sum);
+    }
+
+    public void consumePendingReward(String groupId) {
+        int remaining = getPendingRewardCount(groupId) - 1;
+        if (remaining > 0) {
+            pendingRewards.put(groupId, remaining);
+        } else {
+            pendingRewards.remove(groupId);
+        }
+    }
+
+    public Map<String, Integer> getPendingRewards() {
+        return pendingRewards;
     }
 
     // All-sites reward claim tracking
@@ -230,6 +254,18 @@ public class VotePlayerData {
                    .addRow();
         }
         if (rewardClaims.isEmpty()) return null;
+        return builder.build(con);
+    }
+
+    public PreparedStatement savePendingRewards(Connection con) throws SQLException {
+        SQLInsertBuilder builder = new SQLInsertBuilder(SQLAction.REPLACE, "ashvote_pending_rewards");
+        for (Map.Entry<String, Integer> entry : pendingRewards.entrySet()) {
+            builder.addValue("uuid", uuid.toString())
+                   .addValue("reward_group", entry.getKey())
+                   .addValue("pending_count", entry.getValue())
+                   .addRow();
+        }
+        if (pendingRewards.isEmpty()) return null;
         return builder.build(con);
     }
 

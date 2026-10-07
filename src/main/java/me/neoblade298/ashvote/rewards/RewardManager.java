@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -118,6 +119,22 @@ public class RewardManager {
     }
 
     private void executeRewards(Player player, RewardGroup group, VoteSite site) {
+        if (!group.isAvailableIn(player.getWorld().getName())) {
+            VotePlayerData data = me.neoblade298.ashvote.player.PlayerManager.get(player);
+            if (data == null) {
+                plugin.getLogger().warning("Could not defer reward group '" + group.getId()
+                        + "' for " + player.getName() + ": player data is not loaded.");
+                return;
+            }
+
+            boolean alreadyPending = data.getPendingRewardCount(group.getId()) > 0;
+            data.addPendingReward(group.getId());
+            if (!alreadyPending) {
+                player.sendMessage("§eA vote reward is waiting for you in an eligible world.");
+            }
+            return;
+        }
+
         if (group.hasChoices()) {
             String entry = pickWeighted(group.getChoices());
             if (entry != null) {
@@ -136,6 +153,36 @@ public class RewardManager {
 
         for (String entry : group.getRewards()) {
             executeEntry(player, site, entry);
+        }
+    }
+
+    public void deliverPendingRewards(Player player) {
+        VotePlayerData data = me.neoblade298.ashvote.player.PlayerManager.get(player);
+        if (data == null || data.getPendingRewards().isEmpty()) {
+            return;
+        }
+
+        boolean delivered = false;
+        for (Entry<String, Integer> pending : Map.copyOf(data.getPendingRewards()).entrySet()) {
+            RewardGroup group = groups.get(pending.getKey());
+            if (group == null) {
+                plugin.getLogger().warning("Pending reward group '" + pending.getKey() + "' for "
+                        + player.getName() + " is not configured; leaving it pending.");
+                continue;
+            }
+            if (!group.isAvailableIn(player.getWorld().getName())) {
+                continue;
+            }
+
+            for (int i = 0; i < pending.getValue(); i++) {
+                executeRewards(player, group, null);
+                data.consumePendingReward(group.getId());
+                delivered = true;
+            }
+        }
+
+        if (delivered) {
+            player.sendMessage("§aYour pending vote rewards have been delivered.");
         }
     }
 

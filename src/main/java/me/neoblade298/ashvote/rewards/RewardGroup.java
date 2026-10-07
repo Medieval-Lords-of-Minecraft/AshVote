@@ -1,6 +1,7 @@
 package me.neoblade298.ashvote.rewards;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * A pure reward definition: a bundle of commands ('rewards'), a weighted
@@ -14,13 +15,17 @@ public class RewardGroup {
     private final List<String> rewards;
     private final List<WeightedChoice> choices; // empty = run all rewards; non-empty = pick one weighted
     private final List<PermissionedChoice> permissioned; // empty = not permissioned; non-empty = first authorized entry wins
+    private final List<String> worlds; // empty = deliver in any world
 
     public RewardGroup(String id, List<String> rewards, List<WeightedChoice> choices,
-            List<PermissionedChoice> permissioned) {
+            List<PermissionedChoice> permissioned, List<String> worlds) {
         this.id = id;
         this.rewards = rewards;
         this.choices = choices;
         this.permissioned = permissioned;
+        this.worlds = worlds.stream()
+                .map(world -> world.toLowerCase(Locale.ROOT))
+                .toList();
     }
 
     public String getId() {
@@ -45,5 +50,13 @@ public class RewardGroup {
 
     public boolean hasPermissioned() {
         return permissioned != null && !permissioned.isEmpty();
+    }
+
+    public boolean isAvailableIn(String world) {
+        return worlds.isEmpty() || worlds.contains(world.toLowerCase(Locale.ROOT));
+    }
+
+    public boolean isWorldRestricted() {
+        return !worlds.isEmpty();
     }
 }

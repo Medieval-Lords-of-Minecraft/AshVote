@@ -17,6 +17,9 @@
 #   permissioned: ordered "first authorized wins" list. The FIRST entry whose
 #                 permission the player holds is chosen; a 'default' entry is the
 #                 fallback. Branches are mutually exclusive.
+#   worlds:       optional list of world names where the group may be delivered.
+#                 Outside those worlds, each award is persisted and delivered on
+#                 login or when the player enters an eligible world.
 #
 # ---- triggers ----
 # reward:      REQUIRED. A group id or a raw console command to run.
@@ -34,9 +37,7 @@
 #   TOTAL        - when total votes reaches X (value)
 #   ALL_SITES    - votes on all configured sites in a single calendar day (once per day max)
 #
-# Placeholders in commands:
-#   %player% - the voting player's name
-#   %site%   - the configured id of the site the vote came from
+# Placeholders in commands: %player%
 
 groups:
   # ---- Daily vote reward (ported from FoPzlVote) ----
@@ -48,14 +49,15 @@ groups:
     permissioned:
       - ashvote.premium: daily-premium
       - default: daily-normal
+  dailybroadcast:
+    rewards:
+      - "ncore bc <gray><yellow>%player%</yellow> has voted on <yellow>%site%</yellow>!"
   
   allsites:
     rewards:
       - "ncore msg %player% <gray>You voted on all sites today! You now have 24 hours of access to <yellow>Caravan Save Slot 2</yellow> and one <yellow>50% Caravan Exp Boost</yellow>!"
-      - "ncore msg %player% <gray>You received <yellow>Caravan Save Slot 2</yellow> (24h), a <yellow>50% Caravan Exp Boost</yellow> (1 run), and a <yellow>10% Caravan Sell Boost</yellow> (1 run) for voting on all sites today!"
       - "lp user %player% permission settemp neorogue.slots.2 true 24h"
       - "nra expboost VOTE 1 %player%"
-      - "nra currencyboost VOTE 1 %player%"
 
   daily-premium:
     choices:
@@ -82,79 +84,96 @@ groups:
   # Donator tiers - all commands in each tier are executed.
   donator-standard:
     rewards:
-      - "ncore msg %player% <gray>You received the <yellow>Standard Donator </yellow>reward: <yellow>500 gold</yellow> and <yellow>10 exp"
-      - "xp give %player% 10"
+      - "ncore msg %player% <gray>You received the <yellow>Standard Donator </yellow>reward: <yellow>500 Crowns</yellow> and <yellow>10 exp"
+      - towny-xp-10
       - "execute at %player% run playsound entity.arrow.hit_player master %player%"
       - "eco give %player% 500"
-      - "ashcoins give %player% 20"
+      - "ashcoins give %player% 40"
 
   donator-enhanced:
     rewards:
-      - "ncore msg %player% <gray>You received the <yellow>Enhanced Donator </yellow>reward: <yellow>700 gold</yellow> and <yellow>20 exp"
-      - "xp give %player% 20"
+      - "ncore msg %player% <gray>You received the <yellow>Enhanced Donator </yellow>reward: <yellow>700 Crowns</yellow> and <yellow>20 exp"
+      - towny-xp-20
       - "execute at %player% run playsound entity.firework_rocket.launch master %player%"
       - "eco give %player% 700"
-      - "ashcoins give %player% 20"
+      - "ashcoins give %player% 40"
 
   donator-superior:
     rewards:
-      - "ncore msg %player% <gray>You received the <yellow>Superior Donator </yellow>reward: <yellow>1000 gold</yellow>, <yellow>50 exp</yellow>, and <yellow>Haste I (30m)"
-      - "xp give %player% 50"
+      - "ncore msg %player% <gray>You received the <yellow>Superior Donator </yellow>reward: <yellow>1000 Crowns</yellow>, <yellow>50 exp</yellow>, and <yellow>Haste I (30m)"
+      - towny-xp-50-haste
       - "execute at %player% run playsound entity.firework_rocket.launch master %player%"
-      - "effect give %player% haste 1800 1"
       - "eco give %player% 1000"
-      - "ashcoins give %player% 20"
+      - "ashcoins give %player% 40"
 
   donator-supreme:
     rewards:
-      - "ncore msg %player% <gray>You received the <yellow>Supreme Donator </yellow>reward: <yellow>1200 gold</yellow>, <yellow>100 exp</yellow>, <yellow>Speed I (30m)</yellow>, and <yellow>Haste II (30m)"
-      - "xp give %player% 100"
+      - "ncore msg %player% <gray>You received the <yellow>Supreme Donator </yellow>reward: <yellow>1200 Crowns</yellow>, <yellow>100 exp</yellow>, <yellow>Speed I (30m)</yellow>, and <yellow>Haste II (30m)"
+      - towny-xp-100-haste-speed
       - "execute at %player% run playsound entity.firework_rocket.launch master %player%"
-      - "effect give %player% haste 1800 1"
-      - "effect give %player% speed 1800 0"
       - "eco give %player% 1200"
-      - "ashcoins give %player% 30"
+      - "ashcoins give %player% 60"
 
   # Regular tiers (default) - all commands in each tier are executed.
   regular-standard:
     rewards:
-      - "ncore msg %player% <gray>You received the <yellow>Standard </yellow>reward: <yellow>250 gold</yellow> and <yellow>10 exp"
-      - "xp give %player% 10"
+      - "ncore msg %player% <gray>You received the <yellow>Standard </yellow>reward: <yellow>250 Crowns</yellow> and <yellow>10 exp"
+      - towny-xp-10
       - "execute at %player% run playsound entity.arrow.hit_player master %player%"
       - "eco give %player% 200"
-      - "ashcoins give %player% 10"
+      - "ashcoins give %player% 20"
 
   regular-enhanced:
     rewards:
-      - "ncore msg %player% <gray>You received the <yellow>Enhanced </yellow>reward: <yellow>450 gold</yellow> and <yellow>20 exp"
-      - "xp give %player% 20"
+      - "ncore msg %player% <gray>You received the <yellow>Enhanced </yellow>reward: <yellow>450 Crowns</yellow> and <yellow>20 exp"
+      - towny-xp-20
       - "execute at %player% run playsound entity.firework_rocket.launch master %player%"
       - "eco give %player% 400"
-      - "ashcoins give %player% 10"
+      - "ashcoins give %player% 20"
 
   regular-superior:
     rewards:
-      - "ncore msg %player% <gray>You received the <yellow>Superior </yellow>reward: <yellow>750 gold</yellow>, <yellow>50 exp</yellow>, and <yellow>Haste I (30m)"
-      - "xp give %player% 50"
+      - "ncore msg %player% <gray>You received the <yellow>Superior </yellow>reward: <yellow>750 Crowns</yellow>, <yellow>50 exp</yellow>, and <yellow>Haste I (30m)"
+      - towny-xp-50-haste
       - "execute at %player% run playsound entity.firework_rocket.launch master %player%"
-      - "effect give %player% haste 1800 1"
       - "eco give %player% 600"
-      - "ashcoins give %player% 10"
+      - "ashcoins give %player% 20"
 
   regular-supreme:
     rewards:
-      - "ncore msg %player% <gray>You received the <yellow>Supreme </yellow>reward: <yellow>1100 gold</yellow>, <yellow>100 exp</yellow>, <yellow>Speed I (30m)</yellow>, and <yellow>Haste II (30m)"
-      - "xp give %player% 100"
+      - "ncore msg %player% <gray>You received the <yellow>Supreme </yellow>reward: <yellow>1100 Crowns</yellow>, <yellow>100 exp</yellow>, <yellow>Speed I (30m)</yellow>, and <yellow>Haste II (30m)"
+      - towny-xp-100-haste-speed
       - "execute at %player% run playsound entity.firework_rocket.launch master %player%"
+      - "eco give %player% 1000"
+      - "ashcoins give %player% 30"
+
+  towny-xp-10:
+    worlds: [towny]
+    rewards:
+      - "xp give %player% 10"
+
+  towny-xp-20:
+    worlds: [towny]
+    rewards:
+      - "xp give %player% 20"
+
+  towny-xp-50-haste:
+    worlds: [towny]
+    rewards:
+      - "xp give %player% 50"
+      - "effect give %player% haste 1800 1"
+
+  towny-xp-100-haste-speed:
+    worlds: [towny]
+    rewards:
+      - "xp give %player% 100"
       - "effect give %player% haste 1800 1"
       - "effect give %player% speed 1800 0"
-      - "eco give %player% 1000"
-      - "ashcoins give %player% 15"
 
   # Reusable helper, referenced by the weekly-bonus trigger and the random-loot group.
   #rare-loot:
   #  rewards:
-  #    - "give %player% golden_apple 3"
+  #    - "give %player% Crownsen_apple 3"
 
   # Bundle granted by the weekly-bonus trigger.
   #weekly-bonus:
@@ -179,8 +198,12 @@ triggers:
   daily:
     when: SINGLE
     reward: daily
+  dailybroadcast:
+    when: SINGLE
+    reward: dailybroadcast
   allsites:
-    when: ALL_SITES
+    when: INTERVAL
+    interval: 5
     reward: allsites
 
   # Simple one-off: a trigger can point straight at a console command (no group needed).

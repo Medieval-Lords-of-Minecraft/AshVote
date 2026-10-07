@@ -16,6 +16,7 @@ import me.neoblade298.ashvote.commands.CmdVoteStats;
 import me.neoblade298.ashvote.config.ConfigManager;
 import me.neoblade298.ashvote.leaderboard.LeaderboardManager;
 import me.neoblade298.ashvote.listeners.VoteListener;
+import me.neoblade298.ashvote.listeners.RewardDeliveryListener;
 import me.neoblade298.ashvote.player.PlayerManager;
 import me.neoblade298.ashvote.placeholders.AshVoteExpansion;
 import me.neoblade298.ashvote.rewards.RewardManager;
@@ -68,6 +69,7 @@ public class AshVote extends JavaPlugin {
 
         // Register listener
         getServer().getPluginManager().registerEvents(voteListener, this);
+        getServer().getPluginManager().registerEvents(new RewardDeliveryListener(this), this);
 
         if (getServer().getPluginManager().isPluginEnabled("PlaceholderAPI")) {
             new AshVoteExpansion(this).register();

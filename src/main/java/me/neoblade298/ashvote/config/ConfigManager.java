@@ -116,6 +116,7 @@ public class ConfigManager {
         List<String> rewards = sec.getStringList("rewards");
         List<WeightedChoice> choices = parseChoices(sec, id);
         List<PermissionedChoice> permissioned = parsePermissioned(sec, id);
+        List<String> worlds = sec.getStringList("worlds");
 
         int modes = 0;
         if (!choices.isEmpty()) modes++;
@@ -127,7 +128,7 @@ public class ConfigManager {
                     + "precedence is choices > permissioned > rewards.");
         }
 
-        return new RewardGroup(id, rewards, choices, permissioned);
+        return new RewardGroup(id, rewards, choices, permissioned, worlds);
     }
 
     private RewardTriggerEntry parseTriggerEntry(ConfigurationSection sec, String id) {

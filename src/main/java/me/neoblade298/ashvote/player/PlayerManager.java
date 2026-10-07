@@ -58,6 +58,13 @@ public class PlayerManager implements IOComponent {
             "PRIMARY KEY (uuid, reward_group))"
         );
         stmt.executeUpdate(
+            "CREATE TABLE IF NOT EXISTS ashvote_pending_rewards (" +
+            "uuid VARCHAR(36) NOT NULL, " +
+            "reward_group VARCHAR(64) NOT NULL, " +
+            "pending_count INT NOT NULL DEFAULT 0, " +
+            "PRIMARY KEY (uuid, reward_group))"
+        );
+        stmt.executeUpdate(
             "CREATE TABLE IF NOT EXISTS ashvote_votes (" +
             "id VARCHAR(36) NOT NULL, " +
             "username VARCHAR(16) NOT NULL, " +
@@ -142,7 +149,19 @@ public class PlayerManager implements IOComponent {
                 pd.getRewardClaims().put(rs.getString("reward_group"), rs.getInt("times_claimed"));
             }
 
+            rs = stmt.executeQuery(
+                "SELECT reward_group, pending_count FROM ashvote_pending_rewards WHERE uuid = '" + uuid + "'"
+            );
+            while (rs.next()) {
+                int pendingCount = rs.getInt("pending_count");
+                if (pendingCount > 0) {
+                    pd.getPendingRewards().put(rs.getString("reward_group"), pendingCount);
+                }
+            }
+
             data.put(uuid, pd);
+            Bukkit.getScheduler().runTask(AshVote.inst(),
+                    () -> AshVote.inst().getRewardManager().deliverPendingRewards(p));
 
             List<RecordedVote> pendingVotes = new ArrayList<>();
             try (PreparedStatement pendingStmt = stmt.getConnection().prepareStatement(
@@ -232,6 +251,10 @@ public class PlayerManager implements IOComponent {
 
         PreparedStatement claimsStmt = pd.saveRewardClaims(con);
         if (claimsStmt != null) stmts.add(claimsStmt);
+
+        stmts.add(con.prepareStatement("DELETE FROM ashvote_pending_rewards WHERE uuid = '" + uuid + "'"));
+        PreparedStatement pendingStmt = pd.savePendingRewards(con);
+        if (pendingStmt != null) stmts.add(pendingStmt);
     }
 
     @Override
