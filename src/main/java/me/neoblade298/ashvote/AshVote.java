@@ -116,6 +116,10 @@ public class AshVote extends JavaPlugin {
         return siteManager;
     }
 
+    public ConfigManager getConfigManager() {
+        return configManager;
+    }
+
     public RewardManager getRewardManager() {
         return rewardManager;
     }

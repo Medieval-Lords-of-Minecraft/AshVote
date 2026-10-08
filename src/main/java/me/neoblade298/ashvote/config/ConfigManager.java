@@ -24,18 +24,49 @@ import me.neoblade298.ashvote.rewards.WeightedChoice;
 import me.neoblade298.ashvote.sites.SiteCooldownType;
 import me.neoblade298.ashvote.sites.SiteManager;
 import me.neoblade298.ashvote.sites.VoteSite;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 public class ConfigManager {
 
+    private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
+    private static final LegacyComponentSerializer LEGACY_SERIALIZER = LegacyComponentSerializer.legacySection();
+
     private final AshVote plugin;
+    private String canVoteAvailableMessage;
+    private String canVoteUnavailableMessage;
 
     public ConfigManager(AshVote plugin) {
         this.plugin = plugin;
     }
 
     public void reload(SiteManager siteManager, RewardManager rewardManager) {
+        loadConfig();
         loadSites(siteManager);
         loadRewards(rewardManager);
+    }
+
+    private void loadConfig() {
+        File file = new File(plugin.getDataFolder(), "config.yml");
+        ensureResource("config.yml", file);
+        YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
+
+        canVoteAvailableMessage = parseMiniMessage(cfg.getString(
+                "placeholders.canvote.available", "<green>Vote available!</green>"));
+        canVoteUnavailableMessage = parseMiniMessage(cfg.getString(
+                "placeholders.canvote.unavailable", "<gray>Thanks for voting!</gray>"));
+    }
+
+    private String parseMiniMessage(String message) {
+        return LEGACY_SERIALIZER.serialize(MINI_MESSAGE.deserialize(message));
+    }
+
+    public String getCanVoteAvailableMessage() {
+        return canVoteAvailableMessage;
+    }
+
+    public String getCanVoteUnavailableMessage() {
+        return canVoteUnavailableMessage;
     }
 
     private void loadSites(SiteManager siteManager) {

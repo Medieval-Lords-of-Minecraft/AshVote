@@ -1,0 +1,6 @@
+# Placeholder messages support MiniMessage formatting.
+# https://docs.advntr.dev/minimessage/format.html
+placeholders:
+  canvote:
+    available: "<green>Vote available!</green>"
+    unavailable: "<gray>Thanks for voting!</gray>"
