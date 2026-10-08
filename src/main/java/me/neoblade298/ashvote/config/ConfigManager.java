@@ -1,9 +1,6 @@
 package me.neoblade298.ashvote.config;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
 import java.time.DateTimeException;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -48,7 +45,6 @@ public class ConfigManager {
 
     private void loadConfig() {
         File file = new File(plugin.getDataFolder(), "config.yml");
-        ensureResource("config.yml", file);
         YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
 
         canVoteAvailableMessage = parseMiniMessage(cfg.getString(
@@ -72,7 +68,6 @@ public class ConfigManager {
     private void loadSites(SiteManager siteManager) {
         siteManager.clear();
         File file = new File(plugin.getDataFolder(), "sites.yml");
-        ensureResource("sites.yml", file);
         YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
 
         ConfigurationSection sites = cfg.getConfigurationSection("sites");
@@ -115,7 +110,6 @@ public class ConfigManager {
     private void loadRewards(RewardManager rewardManager) {
         rewardManager.clear();
         File file = new File(plugin.getDataFolder(), "rewards.yml");
-        ensureResource("rewards.yml", file);
         YamlConfiguration cfg = YamlConfiguration.loadConfiguration(file);
 
         // Reward groups: pure "what you get" definitions. They never fire on their own.
@@ -273,16 +267,4 @@ public class ConfigManager {
         };
     }
 
-    private void ensureResource(String name, File file) {
-        if (!file.exists()) {
-            file.getParentFile().mkdirs();
-            try (InputStream in = plugin.getResource(name)) {
-                if (in != null) {
-                    Files.copy(in, file.toPath());
-                }
-            } catch (IOException e) {
-                plugin.getLogger().warning("Failed to save default " + name + ": " + e.getMessage());
-            }
-        }
-    }
 }

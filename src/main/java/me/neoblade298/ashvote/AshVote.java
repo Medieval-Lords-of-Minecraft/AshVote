@@ -1,5 +1,6 @@
 package me.neoblade298.ashvote;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.Statement;
 
@@ -53,6 +54,9 @@ public class AshVote extends JavaPlugin {
         voteListener = new VoteListener(this);
 
         // Load configs
+        saveIfNotExists("config.yml");
+        saveIfNotExists("sites.yml");
+        saveIfNotExists("rewards.yml");
         configManager.reload(siteManager, rewardManager);
 
         // Create tables
@@ -82,6 +86,12 @@ public class AshVote extends JavaPlugin {
         leaderboardManager.refreshAll();
 
         getLogger().info("AshVote enabled!");
+    }
+
+    private void saveIfNotExists(String resourcePath) {
+        if (!new File(getDataFolder(), resourcePath).exists()) {
+            saveResource(resourcePath, false);
+        }
     }
 
     @Override
