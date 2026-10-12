@@ -252,7 +252,11 @@ public class PlayerManager implements IOComponent {
         PreparedStatement claimsStmt = pd.saveRewardClaims(con);
         if (claimsStmt != null) stmts.add(claimsStmt);
 
-        stmts.add(con.prepareStatement("DELETE FROM ashvote_pending_rewards WHERE uuid = '" + uuid + "'"));
+        PreparedStatement deletePendingStmt = con.prepareStatement(
+                "DELETE FROM ashvote_pending_rewards WHERE uuid = ?");
+        deletePendingStmt.setString(1, uuid.toString());
+        deletePendingStmt.addBatch();
+        stmts.add(deletePendingStmt);
         PreparedStatement pendingStmt = pd.savePendingRewards(con);
         if (pendingStmt != null) stmts.add(pendingStmt);
     }
