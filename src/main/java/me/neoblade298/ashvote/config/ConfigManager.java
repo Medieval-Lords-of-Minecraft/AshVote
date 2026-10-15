@@ -32,6 +32,7 @@ public class ConfigManager {
     private final AshVote plugin;
     private String canVoteAvailableMessage;
     private String canVoteUnavailableMessage;
+    private String canVoteAllUnavailableMessage;
 
     public ConfigManager(AshVote plugin) {
         this.plugin = plugin;
@@ -51,6 +52,8 @@ public class ConfigManager {
                 "placeholders.canvote.available", "<green>Vote available!</green>"));
         canVoteUnavailableMessage = parseMiniMessage(cfg.getString(
                 "placeholders.canvote.unavailable", "<gray>Thanks for voting!</gray>"));
+        canVoteAllUnavailableMessage = parseMiniMessage(cfg.getString(
+                "placeholders.canvote.all-unavailable", "<gray>Thanks for voting!</gray>"));
     }
 
     private String parseMiniMessage(String message) {
@@ -63,6 +66,10 @@ public class ConfigManager {
 
     public String getCanVoteUnavailableMessage() {
         return canVoteUnavailableMessage;
+    }
+
+    public String getCanVoteAllUnavailableMessage() {
+        return canVoteAllUnavailableMessage;
     }
 
     private void loadSites(SiteManager siteManager) {

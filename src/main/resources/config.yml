@@ -4,3 +4,4 @@ placeholders:
   canvote:
     available: "<green>Vote available!</green>"
     unavailable: "<gray>Thanks for voting!</gray>"
+    all-unavailable: "<gray>All votes are currently unavailable.</gray>"

@@ -50,8 +50,14 @@ public class AshVoteExpansion extends PlaceholderExpansion {
 
         boolean allSitesAvailable = plugin.getSiteManager().getAll().stream()
                 .allMatch(site -> !site.isOnCooldown(data.getSiteCooldown(site.getId())));
-        return allSitesAvailable
-                ? plugin.getConfigManager().getCanVoteAvailableMessage()
+        if (allSitesAvailable) {
+            return plugin.getConfigManager().getCanVoteAvailableMessage();
+        }
+
+        boolean allSitesUnavailable = plugin.getSiteManager().getAll().stream()
+                .allMatch(site -> site.isOnCooldown(data.getSiteCooldown(site.getId())));
+        return allSitesUnavailable
+                ? plugin.getConfigManager().getCanVoteAllUnavailableMessage()
                 : plugin.getConfigManager().getCanVoteUnavailableMessage();
     }
 }
