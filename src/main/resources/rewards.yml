@@ -24,8 +24,10 @@
 # ---- triggers ----
 # reward:      REQUIRED. A group id or a raw console command to run.
 # when:        SINGLE (default), or an object with type + params (see below).
+#              Parameterized types require a nested 'when' section.
+#              Invalid triggers (including unknown fields) are skipped with a console warning.
 # permission:  optional permission required for this trigger to fire.
-# max-claims:  optional cap on how many times this trigger pays out (omit = unlimited).
+# max-claims:  optional positive integer cap (omit or -1 = unlimited).
 # chance:      optional percent [0-100] chance the trigger fires when eligible (default 100).
 #              Rolled before a max-claim is consumed, so a failed roll doesn't use a claim.
 #
@@ -36,6 +38,10 @@
 #   STREAK_CYCLE - streak reaches start, then every interval after (start, interval)
 #   TOTAL        - when total votes reaches X (value)
 #   ALL_SITES    - votes on all configured sites in a single calendar day (once per day max)
+# All condition parameters must be positive integers nested under 'when', for example:
+#   when:
+#     type: REPEATING
+#     interval: 5
 #
 # Placeholders in commands: %player%
 
@@ -202,8 +208,9 @@ triggers:
     when: SINGLE
     reward: dailybroadcast
   allsites:
-    when: INTERVAL
-    interval: 5
+    when:
+      type: REPEATING
+      interval: 5
     reward: allsites
 
   # Simple one-off: a trigger can point straight at a console command (no group needed).

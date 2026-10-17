@@ -5,7 +5,10 @@ import java.time.DateTimeException;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.logging.Logger;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -129,19 +132,27 @@ public class ConfigManager {
             }
         }
 
-        // Triggers: the "when + gating" entries evaluated on each vote.
-        ConfigurationSection triggersSec = cfg.getConfigurationSection("triggers");
-        if (triggersSec != null) {
-            for (String id : triggersSec.getKeys(false)) {
-                ConfigurationSection sec = triggersSec.getConfigurationSection(id);
-                if (sec == null) continue;
-                RewardTriggerEntry trigger = parseTriggerEntry(sec, id);
-                if (trigger != null) rewardManager.registerTrigger(trigger);
-            }
-        }
+        loadTriggers(cfg.getConfigurationSection("triggers"), rewardManager, plugin.getLogger());
 
         plugin.getLogger().info("Loaded " + rewardManager.getGroupIds().size() + " reward groups and "
                 + rewardManager.getTriggerIds().size() + " triggers.");
+    }
+
+    static void loadTriggers(ConfigurationSection triggersSec, RewardManager rewardManager, Logger logger) {
+        if (triggersSec != null) {
+            for (String id : triggersSec.getKeys(false)) {
+                ConfigurationSection sec = triggersSec.getConfigurationSection(id);
+                if (sec == null) {
+                    logger.warning("Trigger '" + id + "' must be a configuration section; skipping.");
+                    continue;
+                }
+                try {
+                    rewardManager.registerTrigger(parseTriggerEntry(sec, id));
+                } catch (IllegalArgumentException e) {
+                    logger.warning("Invalid trigger '" + id + "': " + e.getMessage() + "; skipping.");
+                }
+            }
+        }
     }
 
     private RewardGroup parseGroup(ConfigurationSection sec, String id) {
@@ -163,17 +174,18 @@ public class ConfigManager {
         return new RewardGroup(id, rewards, choices, permissioned, worlds);
     }
 
-    private RewardTriggerEntry parseTriggerEntry(ConfigurationSection sec, String id) {
-        String reward = sec.getString("reward", null);
-        if (reward == null || reward.isBlank()) {
-            plugin.getLogger().warning("Trigger '" + id + "' is missing a 'reward'; skipping.");
-            return null;
-        }
+    static RewardTriggerEntry parseTriggerEntry(ConfigurationSection sec, String id) {
+        validateKeys(sec, Set.of("reward", "when", "permission", "max-claims", "chance"));
+        String reward = requireString(sec, "reward");
 
         RewardTrigger when = parseCondition(sec);
-        String permission = sec.getString("permission", null);
-        int maxClaims = sec.getInt("max-claims", -1);
-        int chance = clampChance(sec.getInt("chance", 100), id);
+        String permission = sec.contains("permission") ? requireString(sec, "permission") : null;
+        int maxClaims = sec.contains("max-claims")
+                ? requireInteger(sec, "max-claims", -1, Integer.MAX_VALUE) : -1;
+        if (maxClaims == 0) {
+            throw new IllegalArgumentException("'max-claims' must be positive or -1 (unlimited)");
+        }
+        int chance = sec.contains("chance") ? requireInteger(sec, "chance", 0, 100) : 100;
 
         return new RewardTriggerEntry(id, reward, when, permission, maxClaims, chance);
     }
@@ -230,48 +242,72 @@ public class ConfigManager {
         return result;
     }
 
-    private int clampChance(int chance, String groupId) {
-        if (chance < 0 || chance > 100) {
-            plugin.getLogger().warning("Reward group '" + groupId + "' has chance " + chance
-                    + " outside [0, 100]; clamping.");
-            return Math.max(0, Math.min(100, chance));
-        }
-        return chance;
-    }
-
-    private RewardTrigger parseCondition(ConfigurationSection sec) {
+    private static RewardTrigger parseCondition(ConfigurationSection sec) {
         if (!sec.contains("when")) {
             return RewardTrigger.single(); // default: fire on every vote
         }
 
-        // Simple string condition (e.g. when: SINGLE)
-        if (sec.isString("when")) {
-            String type = sec.getString("when", "SINGLE").toUpperCase();
-            if (type.equals("SINGLE")) return RewardTrigger.single();
-            if (type.equals("ALL_SITES")) return RewardTrigger.allSites();
-            // Other types require params, default to single
-            return RewardTrigger.single();
-        }
-
-        // Object condition (e.g. when: { type: REPEATING, interval: 7 })
         ConfigurationSection whenSec = sec.getConfigurationSection("when");
-        if (whenSec == null) return RewardTrigger.single();
-
+        String typeName = whenSec == null ? requireString(sec, "when") : requireString(whenSec, "type");
         RewardTriggerType type;
         try {
-            type = RewardTriggerType.valueOf(whenSec.getString("type", "SINGLE").toUpperCase());
+            type = RewardTriggerType.valueOf(typeName.toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException e) {
-            return RewardTrigger.single();
+            throw new IllegalArgumentException("unknown 'when' type '" + typeName + "'");
+        }
+
+        Set<String> fields = switch (type) {
+            case SINGLE, ALL_SITES -> Set.of("type");
+            case REPEATING -> Set.of("type", "interval");
+            case STREAK, TOTAL -> Set.of("type", "value");
+            case STREAK_CYCLE -> Set.of("type", "start", "interval");
+        };
+        if (whenSec == null) {
+            if (type != RewardTriggerType.SINGLE && type != RewardTriggerType.ALL_SITES) {
+                throw new IllegalArgumentException("'" + type + "' requires a 'when' section with 'type' and "
+                        + "its parameters nested inside it");
+            }
+        } else {
+            validateKeys(whenSec, fields);
         }
 
         return switch (type) {
             case SINGLE -> RewardTrigger.single();
-            case REPEATING -> RewardTrigger.repeating(whenSec.getInt("interval", 1));
-            case STREAK -> RewardTrigger.streak(whenSec.getInt("value", 1));
-            case STREAK_CYCLE -> RewardTrigger.streakCycle(whenSec.getInt("start", 1), whenSec.getInt("interval", 1));
-            case TOTAL -> RewardTrigger.total(whenSec.getInt("value", 1));
+            case REPEATING -> RewardTrigger.repeating(requireInteger(whenSec, "interval", 1, Integer.MAX_VALUE));
+            case STREAK -> RewardTrigger.streak(requireInteger(whenSec, "value", 1, Integer.MAX_VALUE));
+            case STREAK_CYCLE -> RewardTrigger.streakCycle(
+                    requireInteger(whenSec, "start", 1, Integer.MAX_VALUE),
+                    requireInteger(whenSec, "interval", 1, Integer.MAX_VALUE));
+            case TOTAL -> RewardTrigger.total(requireInteger(whenSec, "value", 1, Integer.MAX_VALUE));
             case ALL_SITES -> RewardTrigger.allSites();
         };
+    }
+
+    private static String requireString(ConfigurationSection sec, String key) {
+        if (!(sec.get(key) instanceof String value) || value.isBlank()) {
+            throw new IllegalArgumentException("'" + key + "' must be a non-empty string");
+        }
+        return value;
+    }
+
+    private static int requireInteger(ConfigurationSection sec, String key, int min, int max) {
+        if (!sec.isInt(key)) {
+            throw new IllegalArgumentException("'" + key + "' must be an integer in [" + min + ", " + max + "]");
+        }
+        int value = sec.getInt(key);
+        if (value < min || value > max) {
+            throw new IllegalArgumentException("'" + key + "' must be in [" + min + ", " + max + "]");
+        }
+        return value;
+    }
+
+    private static void validateKeys(ConfigurationSection sec, Set<String> allowed) {
+        for (String key : sec.getKeys(false)) {
+            if (!allowed.contains(key)) {
+                throw new IllegalArgumentException("unexpected field '" + key + "' in '" + sec.getCurrentPath()
+                        + "'; condition parameters belong inside 'when' and must match its type");
+            }
+        }
     }
 
 }
