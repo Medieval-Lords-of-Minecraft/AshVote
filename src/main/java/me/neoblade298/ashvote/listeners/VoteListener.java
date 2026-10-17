@@ -96,7 +96,6 @@ public class VoteListener implements Listener {
         // Refresh leaderboard
         plugin.getLeaderboardManager().refreshAll();
 
-        player.sendMessage("§aThanks for voting on " + site.getDisplayName().replace("&", "§") + "§a!");
         plugin.debug("Vote processed: " + player.getName() + " via " + site.getId() +
                 " (total: " + data.getTotalVotes() + ", streak: " + data.getStreak() + ")");
         return VoteResult.processed();
