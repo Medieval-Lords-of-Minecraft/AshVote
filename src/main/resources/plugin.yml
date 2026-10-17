@@ -5,6 +5,10 @@ api-version: '1.21'
 depend: [NeoCore]
 softdepend: [Votifier, PlaceholderAPI]
 commands:
+  ashvote:
+    description: AshVote administrative controls; debug toggles vote logging until restart (off by default)
+    permission: ashvote.admin
+    usage: /ashvote debug
   vote:
     description: AshVote base command
     permission: ashvote.vote

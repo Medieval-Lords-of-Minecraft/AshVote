@@ -33,7 +33,7 @@ public class VoteListener implements Listener {
         String username = vote.getUsername();
         String serviceName = vote.getServiceName();
 
-        plugin.getLogger().info("Vote received: " + username + " from " + serviceName);
+        plugin.debug("Vote received: " + username + " from " + serviceName);
         recordVote(username, serviceName);
     }
 
@@ -54,7 +54,7 @@ public class VoteListener implements Listener {
                 stmt.setLong(4, System.currentTimeMillis());
                 stmt.setBoolean(5, bypassCooldown);
                 stmt.executeUpdate();
-                plugin.getLogger().info("Recorded vote " + voteId + " for " + username + " from " + serviceName + ".");
+                plugin.debug("Recorded vote " + voteId + " for " + username + " from " + serviceName + ".");
 
                 PlayerManager.tryProcessVote(voteId, username, serviceName, bypassCooldown);
             } catch (Exception e) {
@@ -82,7 +82,7 @@ public class VoteListener implements Listener {
         // Check site cooldown
         long lastSiteVote = data.getSiteCooldown(site.getId());
         if (!bypassCooldown && site.isOnCooldown(lastSiteVote)) {
-            plugin.getLogger().info("Vote from " + player.getName() + " on " + site.getId() + " is on cooldown, ignoring.");
+            plugin.debug("Vote from " + player.getName() + " on " + site.getId() + " is on cooldown, ignoring.");
             return VoteResult.rejected("Site cooldown is active");
         }
 
@@ -97,7 +97,7 @@ public class VoteListener implements Listener {
         plugin.getLeaderboardManager().refreshAll();
 
         player.sendMessage("§aThanks for voting on " + site.getDisplayName().replace("&", "§") + "§a!");
-        plugin.getLogger().info("Vote processed: " + player.getName() + " via " + site.getId() +
+        plugin.debug("Vote processed: " + player.getName() + " via " + site.getId() +
                 " (total: " + data.getTotalVotes() + ", streak: " + data.getStreak() + ")");
         return VoteResult.processed();
     }

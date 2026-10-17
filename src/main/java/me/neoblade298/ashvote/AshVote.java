@@ -7,6 +7,7 @@ import java.sql.Statement;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import me.neoblade298.ashvote.commands.CmdVote;
+import me.neoblade298.ashvote.commands.CmdAshVoteDebug;
 import me.neoblade298.ashvote.commands.CmdVoteAdminFakevote;
 import me.neoblade298.ashvote.commands.CmdVoteAdminGivereward;
 import me.neoblade298.ashvote.commands.CmdVoteAdminReload;
@@ -37,6 +38,7 @@ public class AshVote extends JavaPlugin {
     private PlayerManager playerManager;
     private LeaderboardManager leaderboardManager;
     private VoteListener voteListener;
+    private volatile boolean debugEnabled;
 
     public static AshVote inst() {
         return inst;
@@ -115,6 +117,20 @@ public class AshVote extends JavaPlugin {
         adminCmds.register(new CmdVoteAdminReload("reload", "Reload configs", "ashvote.admin", SubcommandRunner.BOTH));
         adminCmds.register(new CmdVoteAdminGivereward("givereward", "Give a reward group to a player", "ashvote.admin", SubcommandRunner.BOTH));
         adminCmds.registerCommandList("help");
+
+        SubcommandManager ashVoteCmds = new SubcommandManager("ashvote", "ashvote.admin", NamedTextColor.RED, this);
+        ashVoteCmds.register(new CmdAshVoteDebug("debug", "Toggle debug logging until restart", "ashvote.admin", SubcommandRunner.BOTH));
+    }
+
+    public boolean toggleDebugLogging() {
+        debugEnabled = !debugEnabled;
+        return debugEnabled;
+    }
+
+    public void debug(String message) {
+        if (debugEnabled) {
+            getLogger().info(message);
+        }
     }
 
     public void reloadConfigs() {
